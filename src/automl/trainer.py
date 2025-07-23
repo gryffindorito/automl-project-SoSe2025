@@ -1,27 +1,24 @@
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from torchvision import transforms
 from torch.utils.data import DataLoader
-import copy
-import numpy as np
 
-def train(model, train_dataset, val_dataset, device, epochs=20, batch_size=64):
+def train(model, train_loader, val_loader, device, epochs=20):
     """
     Trains a model and returns validation accuracy per epoch.
+    Expects train_loader and val_loader to be actual DataLoader objects.
     """
     model = model.to(device)
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=1e-3)
 
-    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=2)
-    val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False, num_workers=2)
-
     val_accs = []
 
     for epoch in range(epochs):
         model.train()
-        for images, labels in train_loader:
+        for batch in train_loader:
+            images, labels = batch
+            # print(f"TYPE OF labels: {type(labels)} | VALUE: {labels}")
             images, labels = images.to(device), labels.to(device)
 
             optimizer.zero_grad()
@@ -36,7 +33,9 @@ def train(model, train_dataset, val_dataset, device, epochs=20, batch_size=64):
         total = 0
 
         with torch.no_grad():
-            for images, labels in val_loader:
+            for batch in val_loader:
+                images, labels = batch
+                # print(f"TYPE OF labels: {type(labels)} | VALUE: {labels}")
                 images, labels = images.to(device), labels.to(device)
                 outputs = model(images)
                 _, predicted = torch.max(outputs.data, 1)

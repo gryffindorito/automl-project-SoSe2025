@@ -1,120 +1,54 @@
-"""An example run file which trains a dummy AutoML system on the training split of a dataset
-and logs the accuracy score on the test set.
-
-In the example data you are given access to the labels of the test split, however
-in the test dataset we will provide later, you will not have access
-to this and you will need to output your predictions for the images of the test set
-to a file, which we will grade using github classrooms!
-"""
-from __future__ import annotations
-
-from pathlib import Path
-from sklearn.metrics import accuracy_score
-import numpy as np
-from automl.automl import AutoML
 import argparse
+import torch
+from src.automl.generate_curve_dataset import generate_curve_dataset
+from src.automl.curve_predictor import train_regressor, evaluate_regressor
+from src.automl.automl import AutoML
 
-import logging
-
-from automl.datasets import FashionDataset, FlowersDataset, EmotionsDataset
-
-logger = logging.getLogger(__name__)
-
-
-def main(
-    dataset: str,
-    output_path: Path,
-    seed: int,
-):
-    match dataset:
-        case "fashion":
-            dataset_class = FashionDataset
-        case "flowers":
-            dataset_class = FlowersDataset
-        case "emotions":
-            dataset_class = EmotionsDataset
-        case _:
-            raise ValueError(f"Invalid dataset: {args.dataset}")
-
-    logger.info("Fitting AutoML")
-
-    # You do not need to follow this setup or API it's merely here to provide
-    # an example of how your automl system could be used.
-    # As a general rule of thumb, you should **never** pass in any
-    # test data to your AutoML solution other than to generate predictions.
-    automl = AutoML(seed=seed)
-    # load the dataset and create a loader then pass it
-    automl.fit(dataset_class)
-    # Do the same for the test dataset
-    test_preds, test_labels = automl.predict(dataset_class)
-
-    # Write the predictions of X_test to disk
-    # This will be used by github classrooms to get a performance
-    # on the test set.
-    logger.info("Writing predictions to disk")
-    with output_path.open("wb") as f:
-        np.save(f, test_preds)
-
-    # check if test_labels has missing data
-
-
-    if not np.isnan(test_labels).any():
-        acc = accuracy_score(test_labels, test_preds)
-        logger.info(f"Accuracy on test set: {acc}")
-    else:
-        # This is the setting for the exam dataset, you will not have access to the labels
-        logger.info(f"No test split for dataset '{dataset}'")
-
-
-
-if __name__ == "__main__":
+def main():
     parser = argparse.ArgumentParser()
+    parser.add_argument('--mode', type=str, required=True,
+                        choices=['curve', 'train_regressor', 'eval_regressor', 'full_automl'],
+                        help='Select mode: curve / train_regressor / eval_regressor / full_automl')
+    parser.add_argument('--dataset', type=str, required=True,
+                        choices=['fashion', 'flowers', 'emotions'],
+                        help='Select dataset')
+    parser.add_argument('--models', nargs='+',
+                        default=['resnet18', 'mobilenet_v2', 'efficientnet_b0'],
+                        help='Model names for curve generation or automl')
+    parser.add_argument('--output', type=str, default='curve_dataset.pt',
+                        help='Output file for curve dataset')
+    parser.add_argument('--device', type=str,
+                        default='cuda' if torch.cuda.is_available() else 'cpu',
+                        help='Device to use: cuda or cpu')
+    parser.add_argument('--curve_epochs', type=int, default=20,
+                        help='Number of epochs for learning curves')
+    parser.add_argument("--data-dir", type=str, default="data", help="Path to dataset directory")
+    parser.add_argument("--dataset_dir", type=str, default="data", help="Path to dataset root directory")
 
-    parser.add_argument(
-        "--dataset",
-        type=str,
-        required=True,
-        help="The name of the dataset to run on.",
-        choices=["fashion", "flowers", "emotions"]
-    )
-    parser.add_argument(
-        "--output-path",
-        type=Path,
-        default=Path("predictions.npy"),
-        help=(
-            "The path to save the predictions to."
-            " By default this will just save to './predictions.npy'."
-        )
-    )
-    parser.add_argument(
-        "--seed",
-        type=int,
-        default=42,
-        help=(
-            "Random seed for reproducibility if you are using and randomness,"
-            " i.e. torch, numpy, pandas, sklearn, etc."
-        )
-    )
-    parser.add_argument(
-        "--quiet",
-        action="store_true",
-        help="Whether to log only warnings and errors."
-    )
+
 
     args = parser.parse_args()
 
-    if not args.quiet:
-        logging.basicConfig(level=logging.INFO)
-    else:
-        logging.basicConfig(level=logging.WARNING)
+    if args.mode == "curve":
+        generate_curve_dataset(
+        dataset_name=args.dataset,
+        model_names=args.models,
+        dataset_dir=args.dataset_dir,
+        output_path=args.output,
+        device=args.device,
+        n_epochs=args.curve_epochs
+)
 
-    logger.info(
-        f"Running dataset {args.dataset}"
-        f"\n{args}"
-    )
+    elif args.mode == "train_regressor":
+        train_regressor(args.output)
 
-    main(
-        dataset=args.dataset,
-        output_path=args.output_path,
-        seed=args.seed,
-    )
+    elif args.mode == "eval_regressor":
+        evaluate_regressor()
+
+    elif args.mode == "full_automl":
+        automl = AutoML(device=args.device)
+        best_model, best_score = automl.run(dataset_name=args.dataset)
+        print(f"Best model: {best_model} with predicted final accuracy: {best_score:.4f}")
+
+if __name__ == "__main__":
+    main()

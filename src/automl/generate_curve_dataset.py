@@ -1,51 +1,58 @@
 import os
 import torch
-from torchvision import transforms
-from torchvision.datasets import ImageFolder
+import time
 from .models import build_model
 from .trainer import train
-
-def get_dataloaders_from_folder(dataset_path, image_size, grayscale, split_ratio=0.8):
-    transform = transforms.Compose([
-        transforms.Resize((image_size, image_size)),
-        transforms.Grayscale(num_output_channels=1) if grayscale else transforms.Lambda(lambda x: x),
-        transforms.ToTensor()
-    ])
-
-    full_dataset = ImageFolder(dataset_path, transform=transform)
-    total_size = len(full_dataset)
-    train_size = int(total_size * split_ratio)
-    val_size = total_size - train_size
-    return torch.utils.data.random_split(full_dataset, [train_size, val_size])
+from .dataloader_utils import get_dataloaders
+from torch.utils.data import random_split
+from tqdm import tqdm  # ✅ Added for progress indication
 
 def generate_curve_dataset(
     dataset_name: str,
     model_names: list,
     dataset_dir: str = "data",
     output_path: str = "curve_dataset.pt",
-    device: str = "cuda" if torch.cuda.is_available() else "cpu"
+    device: str = "cuda" if torch.cuda.is_available() else "cpu",
+    n_epochs: int = 20
 ):
+    """
+    Trains a list of models on a dataset and saves their learning curves.
+
+    Args:
+        dataset_name: One of ["fashion", "flowers", "emotions"]
+        model_names: List of model names (e.g. ["resnet18", "mobilenet_v2"])
+        output_path: Where to save the curves
+        device: "cuda" or "cpu"
+        n_epochs: Number of epochs to train each model
+    """
     dataset_info = {
-        "fashion": {"img_size": 28, "channels": 1, "classes": 10},
-        "emotions": {"img_size": 48, "channels": 1, "classes": 7},
-        "flowers": {"img_size": 512, "channels": 3, "classes": 102},
+        "fashion": {"classes": 10},
+        "emotions": {"classes": 7},
+        "flowers": {"classes": 102},
     }
 
     assert dataset_name in dataset_info, f"Unknown dataset: {dataset_name}"
-
-    dataset_path = os.path.join(dataset_dir, dataset_name, "images_train")
-    image_size = dataset_info[dataset_name]["img_size"]
-    grayscale = dataset_info[dataset_name]["channels"] == 1
     num_classes = dataset_info[dataset_name]["classes"]
+
+    # Get dataloaders (not datasets!)
+    train_loader, val_loader, _ = get_dataloaders(dataset_name, root=dataset_dir)
 
     results = []
 
-    for model_name in model_names:
-        print(f"Training {model_name} on {dataset_name}")
-        model = build_model(model_name, num_classes)
-        train_data, val_data = get_dataloaders_from_folder(dataset_path, image_size, grayscale)
-        curve = train(model, train_data, val_data, device=device)
+    for model_name in tqdm(model_names, desc="Training Models", unit="model"):  # ✅ Progress bar for models
+        print(f"\n Training {model_name} on {dataset_name} for {n_epochs} epochs...")
+
+        model = build_model(model_name, num_classes=num_classes)
+
+        start_time = time.time()  # ✅ Start timing
+
+        curve = train(model, train_loader, val_loader, device=device, epochs=n_epochs)
+
+        duration = time.time() - start_time  # ✅ End timing
+
+        print(f"✅ Finished training {model_name} in {duration:.2f} seconds.\n")
+
         results.append((model_name, curve))
 
     torch.save(results, output_path)
-    print(f"Saved learning curves to {output_path}")
+    print(f" Saved learning curves to {output_path}")
