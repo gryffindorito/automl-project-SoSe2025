@@ -5,7 +5,7 @@ from .models import build_model
 from .trainer import train
 from .dataloader_utils import get_dataloaders
 from torch.utils.data import random_split
-from tqdm import tqdm  # ✅ Added for progress indication
+from tqdm import tqdm  # ✅ Progress bar for models
 
 def generate_curve_dataset(
     dataset_name: str,
@@ -17,13 +17,7 @@ def generate_curve_dataset(
 ):
     """
     Trains a list of models on a dataset and saves their learning curves.
-
-    Args:
-        dataset_name: One of ["fashion", "flowers", "emotions"]
-        model_names: List of model names (e.g. ["resnet18", "mobilenet_v2"])
-        output_path: Where to save the curves
-        device: "cuda" or "cpu"
-        n_epochs: Number of epochs to train each model
+    Now saves learning curves incrementally after every epoch to avoid loss.
     """
     dataset_info = {
         "fashion": {"classes": 10},
@@ -39,20 +33,37 @@ def generate_curve_dataset(
 
     results = []
 
-    for model_name in tqdm(model_names, desc="Training Models", unit="model"):  # ✅ Progress bar for models
+    for model_name in tqdm(model_names, desc="Training Models", unit="model"):
         print(f"\n Training {model_name} on {dataset_name} for {n_epochs} epochs...")
 
         model = build_model(model_name, num_classes=num_classes)
 
-        start_time = time.time()  # ✅ Start timing
+        curve_so_far = []
 
-        curve = train(model, train_loader, val_loader, device=device, epochs=n_epochs)
+        def on_epoch_end(epoch, val_accs):
+            # Update local curve and write full file
+            curve_so_far.clear()
+            curve_so_far.extend(val_accs)
+            temp_results = results + [(model_name, curve_so_far)]
+            torch.save(temp_results, output_path)
+            print(f" Saved checkpoint with {len(temp_results)} models to {output_path}")
 
-        duration = time.time() - start_time  # ✅ End timing
+        start_time = time.time()
 
-        print(f"✅ Finished training {model_name} in {duration:.2f} seconds.\n")
+        train(
+            model,
+            train_loader,
+            val_loader,
+            device=device,
+            epochs=n_epochs,
+            on_epoch_end=on_epoch_end
+        )
 
-        results.append((model_name, curve))
+        duration = time.time() - start_time
+        print(f" Finished training {model_name} in {duration:.2f} seconds.\n")
 
+        results.append((model_name, curve_so_far))
+
+    # Final save (redundant but safe)
     torch.save(results, output_path)
-    print(f" Saved learning curves to {output_path}")
+    print(f" Final saved learning curves to {output_path}")
