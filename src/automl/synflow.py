@@ -1,7 +1,6 @@
 import torch
 import torch.nn as nn
 
-@torch.no_grad()
 def compute_synflow_score(model, input_size=(1, 1, 28, 28), device='cuda'):
     """
     Compute the SynFlow score for the model.
@@ -17,13 +16,14 @@ def compute_synflow_score(model, input_size=(1, 1, 28, 28), device='cuda'):
     model = model.to(device)
     model.eval()
 
-    # Linearize model (replace ReLU with identity)
+    # Step 1: Replace ReLU with Identity (linearize)
     def linearize(model):
         for module in model.modules():
             if isinstance(module, nn.ReLU):
                 module.inplace = False
                 module.forward = lambda x: x
 
+    # Step 2: Restore ReLU after computation
     def nonlinearize(model):
         for module in model.modules():
             if isinstance(module, nn.ReLU):
@@ -31,21 +31,23 @@ def compute_synflow_score(model, input_size=(1, 1, 28, 28), device='cuda'):
 
     linearize(model)
 
-    # Save original weights and mask gradients
+    # Step 3: Ensure all weights are positive and require gradients
     for param in model.parameters():
         param.requires_grad_(True)
         param.data = param.data.abs()
 
-    input_tensor = torch.ones(input_size).to(device)
+    # Step 4: Create input that also requires gradient
+    input_tensor = torch.ones(input_size, device=device, requires_grad=True)
     output = model(input_tensor).sum()
     output.backward()
 
+    # Step 5: SynFlow = sum over abs(w * grad)
     score = 0.0
     for param in model.parameters():
         if param.grad is not None:
             score += (param.data * param.grad).abs().sum().item()
 
-    # Undo changes
+    # Step 6: Cleanup
     nonlinearize(model)
     model.zero_grad()
 
