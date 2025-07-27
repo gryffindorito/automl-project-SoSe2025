@@ -8,10 +8,11 @@ from PIL import Image
 
 
 class FreiburgDataset(Dataset):
-    def __init__(self, root, split="train", transform=None):
+    def __init__(self, root, split="train", transform=None, grayscale=False):
         self.root = root
         self.split = split
         self.transform = transform
+        self.grayscale = grayscale
 
         csv_path = os.path.join(root, f"{split}.csv")
         self.data = pd.read_csv(csv_path)
@@ -20,24 +21,28 @@ class FreiburgDataset(Dataset):
         return len(self.data)
 
     def __getitem__(self, idx):
-    # Corrected: read image filename from column 1, label from column 0
-      filename_raw = str(self.data.iloc[idx, 1])  # e.g. "008886.jpg"
-      label = int(self.data.iloc[idx, 0])         # e.g. 0, 1, ..., 9
+        filename_raw = str(self.data.iloc[idx, 1])  # e.g. "008886.jpg"
+        label = int(self.data.iloc[idx, 0])         # e.g. 0, 1, ..., 9
 
-    # Detect folder based on split
-      folder = (
-          "images_train" if self.split == "train"
-          else "images_val" if self.split == "val"
-          else "images_test"
-      )
+        folder = (
+            "images_train" if self.split == "train"
+            else "images_val" if self.split == "val"
+            else "images_test"
+        )
 
-      image_path = os.path.join(self.root, folder, filename_raw)
-      image = Image.open(image_path).convert("RGB")
+        image_path = os.path.join(self.root, folder, filename_raw)
+        image = Image.open(image_path)
 
-      if self.transform:
-         image = self.transform(image)
+        # 🛠 Convert to grayscale if needed
+        if self.grayscale:
+            image = image.convert("L")
+        else:
+            image = image.convert("RGB")
 
-      return image, label
+        if self.transform:
+            image = self.transform(image)
+
+        return image, label
 
 
 def get_dataloaders(dataset_name: str, root: str = "data", batch_size: int = 64):
@@ -47,8 +52,11 @@ def get_dataloaders(dataset_name: str, root: str = "data", batch_size: int = 64)
     """
     dataset_root = os.path.join(root, dataset_name)
 
+    is_grayscale = dataset_name == "fashion"
+
     transform = transforms.Compose([
         transforms.Resize((224, 224)),
+        transforms.Grayscale(num_output_channels=1) if is_grayscale else transforms.Lambda(lambda x: x),
         transforms.ToTensor(),
     ])
 
@@ -57,18 +65,18 @@ def get_dataloaders(dataset_name: str, root: str = "data", batch_size: int = 64)
     test_csv_path = os.path.join(dataset_root, "test.csv")
 
     if os.path.exists(train_csv_path):
-        full_train_dataset = FreiburgDataset(dataset_root, split="train", transform=transform)
+        full_train_dataset = FreiburgDataset(dataset_root, split="train", transform=transform, grayscale=is_grayscale)
 
         if os.path.exists(val_csv_path):
             train_dataset = full_train_dataset
-            val_dataset = FreiburgDataset(dataset_root, split="val", transform=transform)
+            val_dataset = FreiburgDataset(dataset_root, split="val", transform=transform, grayscale=is_grayscale)
         else:
             train_len = int(0.8 * len(full_train_dataset))
             val_len = len(full_train_dataset) - train_len
             train_dataset, val_dataset = random_split(full_train_dataset, [train_len, val_len])
 
         test_dataset = (
-            FreiburgDataset(dataset_root, split="test", transform=transform)
+            FreiburgDataset(dataset_root, split="test", transform=transform, grayscale=is_grayscale)
             if os.path.exists(test_csv_path)
             else val_dataset
         )

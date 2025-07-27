@@ -27,11 +27,11 @@ def main():
                         help='Device to use')
     parser.add_argument('--curve_epochs', type=int, default=20,
                         help='Number of epochs for learning curves')
-    parser.add_argument("--data-dir", type=str, default="data", help="Path to dataset directory")
-    parser.add_argument("--dataset_dir", type=str, default="data", help="Root of dataset directory")
-    parser.add_argument('--curve_path', default="curve_dataset.pt", help="Path to curve dataset (for regressor steps)")
-    
-    # NEW: Set regressor path based on dataset name
+    parser.add_argument("--data_dir", type=str, default='/content/automl_data',
+                        help="Path to dataset root folder")
+    parser.add_argument('--curve_path', default="curve_dataset.pt",
+                        help="Path to curve dataset (.pt file)")
+
     args = parser.parse_args()
     args.regressor_path = f"regressor_{args.dataset}.pkl"
 
@@ -39,7 +39,7 @@ def main():
         generate_curve_dataset(
             dataset_name=args.dataset,
             model_names=args.models,
-            dataset_dir=args.dataset_dir,
+            dataset_dir=args.data_dir,
             output_path=args.output,
             device=args.device,
             n_epochs=args.curve_epochs
@@ -52,16 +52,18 @@ def main():
 
         for model_name, curve in data:
             in_channels = 1 if args.dataset == 'fashion' else 3
-            model = build_model(model_name,
-                    num_classes={"fashion": 10, "emotions": 7, "flowers": 102}[args.dataset],
-                    in_channels=in_channels)
+            model = build_model(
+                model_name,
+                num_classes={"fashion": 10, "emotions": 7, "flowers": 102}[args.dataset],
+                in_channels=in_channels
+            )
             input_size = {
               'fashion': (1, 1, 28, 28),
               'emotions': (1, 3, 224, 224),
               'flowers': (1, 3, 224, 224)
             }[args.dataset]
-            syn_score = compute_synflow_score(model, input_size=input_size, device=args.device)
 
+            syn_score = compute_synflow_score(model, input_size=input_size, device=args.device)
             results.append((model_name, curve, syn_score))
             print(f" {model_name} SynFlow score: {syn_score:.2e}")
 
@@ -78,9 +80,9 @@ def main():
                 model_name, curve, synflow = item
             else:
                 raise ValueError("SynFlow score missing from curve data.")
-            feature = np.array([synflow] + curve[:5])  # Use prefix length 5
+            feature = np.array([synflow] + curve[:5])
             X.append(feature)
-            y.append(curve[-1])  # Final epoch accuracy
+            y.append(curve[-1])
 
         train_regressor(X, y, save_path=args.regressor_path)
         print(f"\n Regressor saved to {args.regressor_path}")
@@ -103,8 +105,14 @@ def main():
         print(f" R² Score: {r2:.4f}")
 
     elif args.mode == "full_automl":
-        automl = AutoML(device=args.device)
-        best_model, best_score = automl.run(dataset_name=args.dataset)
+        automl = AutoML(
+            dataset_name=args.dataset,
+            device=args.device,
+            data_dir=args.data_dir,
+            curve_path=args.curve_path,
+            regressor_path=args.regressor_path
+        )
+        best_model, best_score = automl.run()
         print(f" Best model: {best_model} with predicted final accuracy: {best_score:.4f}")
 
 if __name__ == "__main__":
