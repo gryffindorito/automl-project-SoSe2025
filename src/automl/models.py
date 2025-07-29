@@ -28,3 +28,7 @@ def build_model(name: str, num_classes: int, in_channels: int = 3):
         raise ValueError(f"Unknown model: {name}")
 
     return model
+
+# 🔧 This is the missing function:
+def get_model(model_name, num_classes, in_channels):
+    return build_model(model_name, num_classes, in_channels)

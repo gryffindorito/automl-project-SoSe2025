@@ -4,6 +4,14 @@ import xgboost as xgb
 import joblib
 from sklearn.metrics import r2_score
 
+def get_curve(metrics_dict):
+    """
+    Extracts the accuracy values across epochs from a metrics dictionary.
+    Assumes dictionary format: {epoch_num: accuracy}.
+    """
+    return [metrics_dict[epoch] for epoch in sorted(metrics_dict)]
+
+
 def build_feature_vector(synflow_score, curve_prefix):
     """
     Combine SynFlow + partial learning curve into one feature vector.
