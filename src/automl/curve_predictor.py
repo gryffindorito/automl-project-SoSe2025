@@ -5,24 +5,18 @@ import joblib
 from sklearn.metrics import r2_score
 from tqdm import tqdm
 import torch.nn.functional as F
+import os
 
 def get_curve(metrics_dict):
-    """
-    Extracts accuracy values across epochs from a metrics dictionary.
-    Assumes dictionary format: {epoch_num: accuracy}.
-    """
     return [metrics_dict[epoch] for epoch in sorted(metrics_dict)]
-
 
 def train_and_record_curve(
     model, train_loader, val_loader,
     num_epochs=20, device="cuda",
-    lr=1e-3, wd=1e-4, optimizer_type="adamw", scheduler_type=None
+    lr=1e-3, wd=1e-4, optimizer_type="adamw", scheduler_type=None,
+    curve_path=None, model_name=None, dataset_name=None
 ):
-    """
-    Train the model with HPO and record validation accuracy.
-    """
-    # Select optimizer
+    # Optimizer
     if optimizer_type == "adamw":
         optimizer = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=wd)
     elif optimizer_type == "adam":
@@ -30,7 +24,7 @@ def train_and_record_curve(
     else:
         raise ValueError(f"Unsupported optimizer: {optimizer_type}")
 
-    # Optional scheduler
+    # Scheduler
     if scheduler_type == "cosine":
         scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=num_epochs)
     elif scheduler_type == "step":
@@ -38,12 +32,25 @@ def train_and_record_curve(
     else:
         scheduler = None
 
-    metrics = {}
-    best_acc = 0.0
+    # Load previous curve file if exists
+    existing_data = []
+    if curve_path and os.path.exists(curve_path):
+        existing_data = torch.load(curve_path)
+        for item in existing_data:
+            if item["model"] == model_name and item["dataset"] == dataset_name:
+                curve = item["curve"]
+                break
+        else:
+            curve = []
+            existing_data.append({"model": model_name, "dataset": dataset_name, "curve": curve})
+    else:
+        curve = []
+        existing_data.append({"model": model_name, "dataset": dataset_name, "curve": curve})
+
     model.to(device)
     model.train()
 
-    for epoch in range(num_epochs):
+    for epoch in range(len(curve), num_epochs):
         for images, labels in train_loader:
             images, labels = images.to(device), labels.to(device)
             optimizer.zero_grad()
@@ -52,12 +59,12 @@ def train_and_record_curve(
             loss.backward()
             optimizer.step()
 
-        # Scheduler step
-        if scheduler: scheduler.step()
+        if scheduler:
+            scheduler.step()
 
-        # Evaluate
+        # Eval
         model.eval()
-        correct = total = 0
+        correct, total = 0, 0
         with torch.no_grad():
             for images, labels in val_loader:
                 images, labels = images.to(device), labels.to(device)
@@ -66,25 +73,23 @@ def train_and_record_curve(
                 correct += (preds == labels).sum().item()
                 total += labels.size(0)
         acc = correct / total
-        metrics[epoch] = acc
+        curve.append(acc)
         print(f"📊 Epoch {epoch+1}/{num_epochs} | Val Acc: {acc:.4f}")
+
+        # Save
+        if curve_path:
+            torch.save(existing_data, curve_path)
+            print(f"💾 Saved progress after epoch {epoch+1}/{num_epochs}")
+
         model.train()
 
-    return model, metrics
-
+    return model, curve, existing_data
 
 
 def build_feature_vector(synflow_score, curve_prefix):
-    """
-    Combine SynFlow + partial learning curve into one feature vector.
-    """
     return np.array([synflow_score] + curve_prefix)
 
-
 def train_regressor(X, y, save_path="regressor.pkl"):
-    """
-    Train XGBoost regressor on SynFlow + curve prefix to predict final accuracy.
-    """
     model = xgb.XGBRegressor(
         n_estimators=50,
         max_depth=3,
@@ -96,20 +101,12 @@ def train_regressor(X, y, save_path="regressor.pkl"):
     print(f"✅ XGBoost regressor saved to {save_path}")
     return model
 
-
 def predict_final_accuracy(model_path, synflow_score, curve_prefix):
-    """
-    Use trained regressor to predict final accuracy.
-    """
     model = joblib.load(model_path)
     X = build_feature_vector(synflow_score, curve_prefix).reshape(1, -1)
     return model.predict(X)[0]
 
-
 def evaluate_regressor(model_path, X_test, y_test):
-    """
-    Evaluate the regressor on test data. R² requires at least 2 points.
-    """
     model = joblib.load(model_path)
     preds = model.predict(X_test)
     if len(y_test) < 2:
