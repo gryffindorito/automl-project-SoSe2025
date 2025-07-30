@@ -15,14 +15,16 @@ class FreiburgDataset(Dataset):
         self.grayscale = grayscale
 
         csv_path = os.path.join(root, f"{split}.csv")
+        if not os.path.exists(csv_path):
+            raise FileNotFoundError(f"CSV not found: {csv_path}")
         self.data = pd.read_csv(csv_path)
 
     def __len__(self):
         return len(self.data)
 
     def __getitem__(self, idx):
-        filename_raw = str(self.data.iloc[idx, 1])  # e.g. "008886.jpg"
-        label = int(self.data.iloc[idx, 0])         # e.g. 0, 1, ..., 9
+        filename_raw = str(self.data.iloc[idx, 1])
+        label = int(self.data.iloc[idx, 0])
 
         folder = (
             "images_train" if self.split == "train"
@@ -44,11 +46,7 @@ class FreiburgDataset(Dataset):
         return image, label
 
 
-def get_dataloaders(dataset_name: str, root: str = "data", batch_size: int = 64):
-    """
-    Loads dataloaders using FreiburgDataset (CSV-based).
-    If no CSV exists, fallback to ImageFolder (folder-based).
-    """
+def get_dataloaders(dataset_name: str, root: str = "automl_data", batch_size: int = 64):
     dataset_root = os.path.join(root, dataset_name)
     is_grayscale = dataset_name == "fashion"
 
@@ -78,9 +76,8 @@ def get_dataloaders(dataset_name: str, root: str = "data", batch_size: int = 64)
             if os.path.exists(test_csv_path)
             else val_dataset
         )
-
     else:
-        raise FileNotFoundError(f"🚨 Could not find train.csv in {dataset_root}. Cannot use FreiburgDataset or fallback to ImageFolder.")
+        raise FileNotFoundError(f"🚨 Could not find train.csv in either {dataset_root} or {root}")
 
     print("✅ Dataset split complete.")
     print("Train:", len(train_dataset), "| Val:", len(val_dataset), "| Test:", len(test_dataset))
@@ -90,4 +87,3 @@ def get_dataloaders(dataset_name: str, root: str = "data", batch_size: int = 64)
     test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, num_workers=2)
 
     return train_loader, val_loader, test_loader
-

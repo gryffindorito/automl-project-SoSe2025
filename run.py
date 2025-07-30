@@ -29,8 +29,7 @@ def main():
                     help='Device to use')
     parser.add_argument('--curve_epochs', type=int, default=20,
                     help='Number of epochs to train models for learning curves')
-    parser.add_argument('--data_dir', type=str, default='automl_data',
-                    help='Path to data directory')  # ✅ ONLY KEEP THIS LINE
+    parser.add_argument('--data_dir', type=str, default='/content/automl_data',)
     parser.add_argument('--curve_path', default="curve_dataset.pt",
                     help="Path to saved curve dataset (.pt file)")
     args = parser.parse_args()

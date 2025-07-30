@@ -1,5 +1,6 @@
 import os
 import torch
+import copy
 from tqdm import tqdm
 from src.automl.models import get_model
 from src.automl.synflow import compute_synflow_score
@@ -35,7 +36,7 @@ def generate_curve_dataset(
 ):
     curve_data = []
 
-    # 🧠 Try to resume if file exists
+    # 📂 Load existing data if resuming
     if os.path.exists(save_path):
         print(f"📂 Found existing dataset at {save_path}, loading...")
         curve_data = torch.load(save_path)
@@ -80,26 +81,35 @@ def generate_curve_dataset(
             input_shape = tuple(first_batch.shape)
             synflow = compute_synflow_score(model, input_shape, device=device)
 
-            # Get model-specific HPO
+            # Get model-specific HPO config
             config = model_hpo.get(model_name, {})
-            _, metrics = train_and_record_curve(
-                model, train_loader, val_loader,
-                num_epochs=max_epoch, device=device,
-                lr=config.get("lr", 1e-3),
-                wd=config.get("wd", 1e-4),
-                optimizer_type=config.get("opt", "adamw"),
-                scheduler_type=config.get("sched", None)
-            )
 
-            # Save entry
-            curve_data.append({
-                "model": model_name,
-                "dataset": dataset_name,
-                "curve": [metrics[epoch] for epoch in sorted(metrics)],
-                "synflow": synflow,
-            })
+            # Epoch-by-epoch training + saving
+            metrics = {}
+            for epoch in range(max_epoch):
+                _, epoch_metrics = train_and_record_curve(
+                    model, train_loader, val_loader,
+                    num_epochs=1,  # just one epoch per call
+                    device=device,
+                    lr=config.get("lr", 1e-3),
+                    wd=config.get("wd", 1e-4),
+                    optimizer_type=config.get("opt", "adamw"),
+                    scheduler_type=config.get("sched", None)
+                )
+                metrics.update(epoch_metrics)
 
-            torch.save(curve_data, save_path)
-            print(f"✅ Saved curve entry for {model_name} on {dataset_name} to {save_path}")
+                # Create updated entry
+                entry = {
+                    "model": model_name,
+                    "dataset": dataset_name,
+                    "curve": [metrics[e] for e in sorted(metrics)],
+                    "synflow": synflow,
+                }
+
+                # Replace previous partial or existing entry
+                curve_data = [e for e in curve_data if not (e['model'] == model_name and e['dataset'] == dataset_name)]
+                curve_data.append(copy.deepcopy(entry))
+                torch.save(curve_data, save_path)
+                print(f"💾 Saved progress after epoch {epoch+1}/{max_epoch}")
 
     print("\n🎉 All curve data generated.")
