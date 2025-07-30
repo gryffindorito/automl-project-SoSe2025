@@ -33,7 +33,6 @@ class FreiburgDataset(Dataset):
         image_path = os.path.join(self.root, folder, filename_raw)
         image = Image.open(image_path)
 
-        # 🛠 Convert to grayscale if needed
         if self.grayscale:
             image = image.convert("L")
         else:
@@ -47,11 +46,10 @@ class FreiburgDataset(Dataset):
 
 def get_dataloaders(dataset_name: str, root: str = "data", batch_size: int = 64):
     """
-    Unified loader that supports both CSV-based and folder-based datasets.
-    Falls back to 80/20 train/val split if val.csv is missing.
+    Loads dataloaders using FreiburgDataset (CSV-based).
+    If no CSV exists, fallback to ImageFolder (folder-based).
     """
     dataset_root = os.path.join(root, dataset_name)
-
     is_grayscale = dataset_name == "fashion"
 
     transform = transforms.Compose([
@@ -80,12 +78,9 @@ def get_dataloaders(dataset_name: str, root: str = "data", batch_size: int = 64)
             if os.path.exists(test_csv_path)
             else val_dataset
         )
+
     else:
-        full_dataset = ImageFolder(dataset_root, transform=transform)
-        train_len = int(0.8 * len(full_dataset))
-        val_len = len(full_dataset) - train_len
-        train_dataset, val_dataset = random_split(full_dataset, [train_len, val_len])
-        test_dataset = val_dataset
+        raise FileNotFoundError(f"🚨 Could not find train.csv in {dataset_root}. Cannot use FreiburgDataset or fallback to ImageFolder.")
 
     print("✅ Dataset split complete.")
     print("Train:", len(train_dataset), "| Val:", len(val_dataset), "| Test:", len(test_dataset))
@@ -95,3 +90,4 @@ def get_dataloaders(dataset_name: str, root: str = "data", batch_size: int = 64)
     test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, num_workers=2)
 
     return train_loader, val_loader, test_loader
+

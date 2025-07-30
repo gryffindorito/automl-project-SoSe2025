@@ -14,14 +14,32 @@ def get_curve(metrics_dict):
     return [metrics_dict[epoch] for epoch in sorted(metrics_dict)]
 
 
-def train_and_record_curve(model, train_loader, val_loader, num_epochs=20, device="cuda"):
+def train_and_record_curve(
+    model, train_loader, val_loader,
+    num_epochs=20, device="cuda",
+    lr=1e-3, wd=1e-4, optimizer_type="adamw", scheduler_type=None
+):
     """
-    Train the model and record validation accuracy at each epoch.
-    Returns the model and a metrics dict of val accuracies.
+    Train the model with HPO and record validation accuracy.
     """
-    optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
-    metrics = {}
+    # Select optimizer
+    if optimizer_type == "adamw":
+        optimizer = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=wd)
+    elif optimizer_type == "adam":
+        optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=wd)
+    else:
+        raise ValueError(f"Unsupported optimizer: {optimizer_type}")
 
+    # Optional scheduler
+    if scheduler_type == "cosine":
+        scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=num_epochs)
+    elif scheduler_type == "step":
+        scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.5)
+    else:
+        scheduler = None
+
+    metrics = {}
+    best_acc = 0.0
     model.to(device)
     model.train()
 
@@ -34,7 +52,10 @@ def train_and_record_curve(model, train_loader, val_loader, num_epochs=20, devic
             loss.backward()
             optimizer.step()
 
-        # Eval after epoch
+        # Scheduler step
+        if scheduler: scheduler.step()
+
+        # Evaluate
         model.eval()
         correct = total = 0
         with torch.no_grad():
@@ -50,6 +71,7 @@ def train_and_record_curve(model, train_loader, val_loader, num_epochs=20, devic
         model.train()
 
     return model, metrics
+
 
 
 def build_feature_vector(synflow_score, curve_prefix):
