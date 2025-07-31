@@ -1,0 +1,414 @@
+[I 2025-07-31 22:25:28,935] A new study created in memory with name: no-name-5ca9c11d-cc68-42ad-9211-fc57b77b653d
+🎯 Starting Optuna HPO for resnet18 on flowers
+✅ Dataset split complete.
+Train: 4585 | Val: 1147 | Test: 2457
+/usr/local/lib/python3.11/dist-packages/torchvision/models/_utils.py:208: UserWarning: The parameter 'pretrained' is deprecated since 0.13 and may be removed in the future, please use 'weights' instead.
+  warnings.warn(
+/usr/local/lib/python3.11/dist-packages/torchvision/models/_utils.py:223: UserWarning: Arguments other than a weight enum or `None` for 'weights' are deprecated since 0.13 and may be removed in the future. The current behavior is equivalent to passing `weights=None`.
+  warnings.warn(msg)
+📊 Epoch 1/20 | Val Acc: 0.0166
+📊 Epoch 2/20 | Val Acc: 0.2276
+📊 Epoch 3/20 | Val Acc: 0.2677
+📊 Epoch 4/20 | Val Acc: 0.3078
+📊 Epoch 5/20 | Val Acc: 0.3339
+📊 Epoch 6/20 | Val Acc: 0.1543
+📊 Epoch 7/20 | Val Acc: 0.2807
+📊 Epoch 8/20 | Val Acc: 0.3391
+📊 Epoch 9/20 | Val Acc: 0.3095
+📊 Epoch 10/20 | Val Acc: 0.4377
+📊 Epoch 11/20 | Val Acc: 0.5118
+📊 Epoch 12/20 | Val Acc: 0.4821
+📊 Epoch 13/20 | Val Acc: 0.2772
+📊 Epoch 14/20 | Val Acc: 0.4752
+📊 Epoch 15/20 | Val Acc: 0.4237
+📊 Epoch 16/20 | Val Acc: 0.4734
+📊 Epoch 17/20 | Val Acc: 0.4996
+📊 Epoch 18/20 | Val Acc: 0.5397
+📊 Epoch 19/20 | Val Acc: 0.5092
+[I 2025-07-31 22:30:18,971] Trial 0 finished with value: 0.5632083696599826 and parameters: {'lr': 0.0011120241402431436, 'weight_decay': 0.00043295159305134544}. Best is trial 0 with value: 0.5632083696599826.
+📊 Epoch 20/20 | Val Acc: 0.5632
+✅ Dataset split complete.
+Train: 4585 | Val: 1147 | Test: 2457
+/usr/local/lib/python3.11/dist-packages/torchvision/models/_utils.py:208: UserWarning: The parameter 'pretrained' is deprecated since 0.13 and may be removed in the future, please use 'weights' instead.
+  warnings.warn(
+/usr/local/lib/python3.11/dist-packages/torchvision/models/_utils.py:223: UserWarning: Arguments other than a weight enum or `None` for 'weights' are deprecated since 0.13 and may be removed in the future. The current behavior is equivalent to passing `weights=None`.
+  warnings.warn(msg)
+📊 Epoch 1/20 | Val Acc: 0.1909
+📊 Epoch 2/20 | Val Acc: 0.2877
+📊 Epoch 3/20 | Val Acc: 0.3339
+📊 Epoch 4/20 | Val Acc: 0.2903
+📊 Epoch 5/20 | Val Acc: 0.3339
+📊 Epoch 6/20 | Val Acc: 0.3749
+📊 Epoch 7/20 | Val Acc: 0.4847
+📊 Epoch 8/20 | Val Acc: 0.4882
+📊 Epoch 9/20 | Val Acc: 0.4839
+📊 Epoch 10/20 | Val Acc: 0.4228
+📊 Epoch 11/20 | Val Acc: 0.5231
+📊 Epoch 12/20 | Val Acc: 0.4708
+📊 Epoch 13/20 | Val Acc: 0.5815
+📊 Epoch 14/20 | Val Acc: 0.5536
+📊 Epoch 15/20 | Val Acc: 0.5676
+📊 Epoch 16/20 | Val Acc: 0.6085
+📊 Epoch 17/20 | Val Acc: 0.6286
+📊 Epoch 18/20 | Val Acc: 0.6155
+📊 Epoch 19/20 | Val Acc: 0.6722
+[I 2025-07-31 22:35:09,280] Trial 1 finished with value: 0.6861377506538797 and parameters: {'lr': 0.00013523278726811633, 'weight_decay': 0.0005018026547821215}. Best is trial 1 with value: 0.6861377506538797.
+📊 Epoch 20/20 | Val Acc: 0.6861
+✅ Dataset split complete.
+Train: 4585 | Val: 1147 | Test: 2457
+/usr/local/lib/python3.11/dist-packages/torchvision/models/_utils.py:208: UserWarning: The parameter 'pretrained' is deprecated since 0.13 and may be removed in the future, please use 'weights' instead.
+  warnings.warn(
+/usr/local/lib/python3.11/dist-packages/torchvision/models/_utils.py:223: UserWarning: Arguments other than a weight enum or `None` for 'weights' are deprecated since 0.13 and may be removed in the future. The current behavior is equivalent to passing `weights=None`.
+  warnings.warn(msg)
+📊 Epoch 1/20 | Val Acc: 0.0872
+📊 Epoch 2/20 | Val Acc: 0.1386
+📊 Epoch 3/20 | Val Acc: 0.2058
+📊 Epoch 4/20 | Val Acc: 0.1709
+📊 Epoch 5/20 | Val Acc: 0.1656
+📊 Epoch 6/20 | Val Acc: 0.2633
+📊 Epoch 7/20 | Val Acc: 0.3226
+📊 Epoch 8/20 | Val Acc: 0.2807
+📊 Epoch 9/20 | Val Acc: 0.2912
+📊 Epoch 10/20 | Val Acc: 0.2424
+📊 Epoch 11/20 | Val Acc: 0.3653
+📊 Epoch 12/20 | Val Acc: 0.3339
+📊 Epoch 13/20 | Val Acc: 0.1212
+📊 Epoch 14/20 | Val Acc: 0.3095
+📊 Epoch 15/20 | Val Acc: 0.2886
+📊 Epoch 16/20 | Val Acc: 0.5310
+📊 Epoch 17/20 | Val Acc: 0.3217
+📊 Epoch 18/20 | Val Acc: 0.5266
+📊 Epoch 19/20 | Val Acc: 0.4028
+[I 2025-07-31 22:39:59,577] Trial 2 finished with value: 0.5422842197035745 and parameters: {'lr': 0.0014161130025314138, 'weight_decay': 0.00024492216691399387}. Best is trial 1 with value: 0.6861377506538797.
+📊 Epoch 20/20 | Val Acc: 0.5423
+✅ Dataset split complete.
+Train: 4585 | Val: 1147 | Test: 2457
+/usr/local/lib/python3.11/dist-packages/torchvision/models/_utils.py:208: UserWarning: The parameter 'pretrained' is deprecated since 0.13 and may be removed in the future, please use 'weights' instead.
+  warnings.warn(
+/usr/local/lib/python3.11/dist-packages/torchvision/models/_utils.py:223: UserWarning: Arguments other than a weight enum or `None` for 'weights' are deprecated since 0.13 and may be removed in the future. The current behavior is equivalent to passing `weights=None`.
+  warnings.warn(msg)
+📊 Epoch 1/20 | Val Acc: 0.0854
+📊 Epoch 2/20 | Val Acc: 0.1447
+📊 Epoch 3/20 | Val Acc: 0.0201
+📊 Epoch 4/20 | Val Acc: 0.2616
+📊 Epoch 5/20 | Val Acc: 0.2624
+📊 Epoch 6/20 | Val Acc: 0.2188
+📊 Epoch 7/20 | Val Acc: 0.3479
+📊 Epoch 8/20 | Val Acc: 0.1918
+📊 Epoch 9/20 | Val Acc: 0.3670
+📊 Epoch 10/20 | Val Acc: 0.3845
+📊 Epoch 11/20 | Val Acc: 0.4333
+📊 Epoch 12/20 | Val Acc: 0.4133
+📊 Epoch 13/20 | Val Acc: 0.4394
+📊 Epoch 14/20 | Val Acc: 0.4908
+📊 Epoch 15/20 | Val Acc: 0.4969
+📊 Epoch 16/20 | Val Acc: 0.4935
+📊 Epoch 17/20 | Val Acc: 0.5754
+📊 Epoch 18/20 | Val Acc: 0.4874
+📊 Epoch 19/20 | Val Acc: 0.4141
+[I 2025-07-31 22:44:50,868] Trial 3 finished with value: 0.43679163034001744 and parameters: {'lr': 0.001225932065483798, 'weight_decay': 1.414213791726001e-05}. Best is trial 1 with value: 0.6861377506538797.
+📊 Epoch 20/20 | Val Acc: 0.4368
+✅ Dataset split complete.
+Train: 4585 | Val: 1147 | Test: 2457
+/usr/local/lib/python3.11/dist-packages/torchvision/models/_utils.py:208: UserWarning: The parameter 'pretrained' is deprecated since 0.13 and may be removed in the future, please use 'weights' instead.
+  warnings.warn(
+/usr/local/lib/python3.11/dist-packages/torchvision/models/_utils.py:223: UserWarning: Arguments other than a weight enum or `None` for 'weights' are deprecated since 0.13 and may be removed in the future. The current behavior is equivalent to passing `weights=None`.
+  warnings.warn(msg)
+📊 Epoch 1/20 | Val Acc: 0.0785
+📊 Epoch 2/20 | Val Acc: 0.1090
+📊 Epoch 3/20 | Val Acc: 0.2040
+📊 Epoch 4/20 | Val Acc: 0.2031
+📊 Epoch 5/20 | Val Acc: 0.2232
+📊 Epoch 6/20 | Val Acc: 0.3034
+📊 Epoch 7/20 | Val Acc: 0.2851
+📊 Epoch 8/20 | Val Acc: 0.1508
+📊 Epoch 9/20 | Val Acc: 0.1822
+📊 Epoch 10/20 | Val Acc: 0.2947
+📊 Epoch 11/20 | Val Acc: 0.3810
+📊 Epoch 12/20 | Val Acc: 0.4481
+📊 Epoch 13/20 | Val Acc: 0.3714
+📊 Epoch 14/20 | Val Acc: 0.4856
+📊 Epoch 15/20 | Val Acc: 0.4577
+📊 Epoch 16/20 | Val Acc: 0.5641
+📊 Epoch 17/20 | Val Acc: 0.5562
+📊 Epoch 18/20 | Val Acc: 0.5371
+📊 Epoch 19/20 | Val Acc: 0.5571
+[I 2025-07-31 22:49:39,212] Trial 4 finished with value: 0.5335658238884046 and parameters: {'lr': 0.006009273343384432, 'weight_decay': 0.0008211079993243151}. Best is trial 1 with value: 0.6861377506538797.
+📊 Epoch 20/20 | Val Acc: 0.5336
+✅ Dataset split complete.
+Train: 4585 | Val: 1147 | Test: 2457
+/usr/local/lib/python3.11/dist-packages/torchvision/models/_utils.py:208: UserWarning: The parameter 'pretrained' is deprecated since 0.13 and may be removed in the future, please use 'weights' instead.
+  warnings.warn(
+/usr/local/lib/python3.11/dist-packages/torchvision/models/_utils.py:223: UserWarning: Arguments other than a weight enum or `None` for 'weights' are deprecated since 0.13 and may be removed in the future. The current behavior is equivalent to passing `weights=None`.
+  warnings.warn(msg)
+📊 Epoch 1/20 | Val Acc: 0.1761
+📊 Epoch 2/20 | Val Acc: 0.2432
+📊 Epoch 3/20 | Val Acc: 0.3269
+📊 Epoch 4/20 | Val Acc: 0.3104
+📊 Epoch 5/20 | Val Acc: 0.4141
+📊 Epoch 6/20 | Val Acc: 0.4917
+📊 Epoch 7/20 | Val Acc: 0.3993
+📊 Epoch 8/20 | Val Acc: 0.4525
+📊 Epoch 9/20 | Val Acc: 0.4717
+📊 Epoch 10/20 | Val Acc: 0.3880
+📊 Epoch 11/20 | Val Acc: 0.4673
+📊 Epoch 12/20 | Val Acc: 0.4446
+📊 Epoch 13/20 | Val Acc: 0.5187
+📊 Epoch 14/20 | Val Acc: 0.5615
+📊 Epoch 15/20 | Val Acc: 0.5719
+📊 Epoch 16/20 | Val Acc: 0.5841
+📊 Epoch 17/20 | Val Acc: 0.6077
+📊 Epoch 18/20 | Val Acc: 0.6112
+📊 Epoch 19/20 | Val Acc: 0.6713
+[I 2025-07-31 22:54:29,605] Trial 5 finished with value: 0.6800348735832606 and parameters: {'lr': 0.0001450949111962512, 'weight_decay': 0.0007917809813342839}. Best is trial 1 with value: 0.6861377506538797.
+📊 Epoch 20/20 | Val Acc: 0.6800
+✅ Dataset split complete.
+Train: 4585 | Val: 1147 | Test: 2457
+/usr/local/lib/python3.11/dist-packages/torchvision/models/_utils.py:208: UserWarning: The parameter 'pretrained' is deprecated since 0.13 and may be removed in the future, please use 'weights' instead.
+  warnings.warn(
+/usr/local/lib/python3.11/dist-packages/torchvision/models/_utils.py:223: UserWarning: Arguments other than a weight enum or `None` for 'weights' are deprecated since 0.13 and may be removed in the future. The current behavior is equivalent to passing `weights=None`.
+  warnings.warn(msg)
+📊 Epoch 1/20 | Val Acc: 0.1465
+📊 Epoch 2/20 | Val Acc: 0.1177
+📊 Epoch 3/20 | Val Acc: 0.2537
+📊 Epoch 4/20 | Val Acc: 0.2337
+📊 Epoch 5/20 | Val Acc: 0.3147
+📊 Epoch 6/20 | Val Acc: 0.2903
+📊 Epoch 7/20 | Val Acc: 0.4255
+📊 Epoch 8/20 | Val Acc: 0.3793
+📊 Epoch 9/20 | Val Acc: 0.4106
+📊 Epoch 10/20 | Val Acc: 0.3296
+📊 Epoch 11/20 | Val Acc: 0.4324
+📊 Epoch 12/20 | Val Acc: 0.4943
+📊 Epoch 13/20 | Val Acc: 0.3897
+📊 Epoch 14/20 | Val Acc: 0.5153
+📊 Epoch 15/20 | Val Acc: 0.4969
+📊 Epoch 16/20 | Val Acc: 0.5615
+📊 Epoch 17/20 | Val Acc: 0.5580
+📊 Epoch 18/20 | Val Acc: 0.5641
+📊 Epoch 19/20 | Val Acc: 0.5972
+[I 2025-07-31 22:59:16,436] Trial 6 finished with value: 0.5823888404533566 and parameters: {'lr': 0.000703895516645513, 'weight_decay': 0.00022257145803396383}. Best is trial 1 with value: 0.6861377506538797.
+📊 Epoch 20/20 | Val Acc: 0.5824
+✅ Dataset split complete.
+Train: 4585 | Val: 1147 | Test: 2457
+/usr/local/lib/python3.11/dist-packages/torchvision/models/_utils.py:208: UserWarning: The parameter 'pretrained' is deprecated since 0.13 and may be removed in the future, please use 'weights' instead.
+  warnings.warn(
+/usr/local/lib/python3.11/dist-packages/torchvision/models/_utils.py:223: UserWarning: Arguments other than a weight enum or `None` for 'weights' are deprecated since 0.13 and may be removed in the future. The current behavior is equivalent to passing `weights=None`.
+  warnings.warn(msg)
+📊 Epoch 1/20 | Val Acc: 0.1282
+📊 Epoch 2/20 | Val Acc: 0.0968
+📊 Epoch 3/20 | Val Acc: 0.1709
+📊 Epoch 4/20 | Val Acc: 0.1674
+📊 Epoch 5/20 | Val Acc: 0.2528
+📊 Epoch 6/20 | Val Acc: 0.2746
+📊 Epoch 7/20 | Val Acc: 0.3601
+📊 Epoch 8/20 | Val Acc: 0.2642
+📊 Epoch 9/20 | Val Acc: 0.3339
+📊 Epoch 10/20 | Val Acc: 0.2990
+📊 Epoch 11/20 | Val Acc: 0.4682
+📊 Epoch 12/20 | Val Acc: 0.2633
+📊 Epoch 13/20 | Val Acc: 0.4586
+📊 Epoch 14/20 | Val Acc: 0.4638
+📊 Epoch 15/20 | Val Acc: 0.5240
+📊 Epoch 16/20 | Val Acc: 0.4978
+📊 Epoch 17/20 | Val Acc: 0.5388
+📊 Epoch 18/20 | Val Acc: 0.5867
+📊 Epoch 19/20 | Val Acc: 0.5562
+[I 2025-07-31 23:04:06,882] Trial 7 finished with value: 0.4707933740191805 and parameters: {'lr': 0.0017602919320689257, 'weight_decay': 0.00015706683132967906}. Best is trial 1 with value: 0.6861377506538797.
+📊 Epoch 20/20 | Val Acc: 0.4708
+✅ Dataset split complete.
+Train: 4585 | Val: 1147 | Test: 2457
+/usr/local/lib/python3.11/dist-packages/torchvision/models/_utils.py:208: UserWarning: The parameter 'pretrained' is deprecated since 0.13 and may be removed in the future, please use 'weights' instead.
+  warnings.warn(
+/usr/local/lib/python3.11/dist-packages/torchvision/models/_utils.py:223: UserWarning: Arguments other than a weight enum or `None` for 'weights' are deprecated since 0.13 and may be removed in the future. The current behavior is equivalent to passing `weights=None`.
+  warnings.warn(msg)
+📊 Epoch 1/20 | Val Acc: 0.1412
+📊 Epoch 2/20 | Val Acc: 0.1970
+📊 Epoch 3/20 | Val Acc: 0.2276
+📊 Epoch 4/20 | Val Acc: 0.2485
+📊 Epoch 5/20 | Val Acc: 0.2101
+📊 Epoch 6/20 | Val Acc: 0.3313
+📊 Epoch 7/20 | Val Acc: 0.2720
+📊 Epoch 8/20 | Val Acc: 0.3993
+📊 Epoch 9/20 | Val Acc: 0.2476
+📊 Epoch 10/20 | Val Acc: 0.2432
+📊 Epoch 11/20 | Val Acc: 0.3740
+📊 Epoch 12/20 | Val Acc: 0.3906
+📊 Epoch 13/20 | Val Acc: 0.4307
+📊 Epoch 14/20 | Val Acc: 0.4865
+📊 Epoch 15/20 | Val Acc: 0.4385
+📊 Epoch 16/20 | Val Acc: 0.5231
+📊 Epoch 17/20 | Val Acc: 0.2816
+📊 Epoch 18/20 | Val Acc: 0.5196
+📊 Epoch 19/20 | Val Acc: 0.5257
+[I 2025-07-31 23:08:55,728] Trial 8 finished with value: 0.5248474280732345 and parameters: {'lr': 0.002132804836583923, 'weight_decay': 6.335692170048692e-05}. Best is trial 1 with value: 0.6861377506538797.
+📊 Epoch 20/20 | Val Acc: 0.5248
+✅ Dataset split complete.
+Train: 4585 | Val: 1147 | Test: 2457
+/usr/local/lib/python3.11/dist-packages/torchvision/models/_utils.py:208: UserWarning: The parameter 'pretrained' is deprecated since 0.13 and may be removed in the future, please use 'weights' instead.
+  warnings.warn(
+/usr/local/lib/python3.11/dist-packages/torchvision/models/_utils.py:223: UserWarning: Arguments other than a weight enum or `None` for 'weights' are deprecated since 0.13 and may be removed in the future. The current behavior is equivalent to passing `weights=None`.
+  warnings.warn(msg)
+📊 Epoch 1/20 | Val Acc: 0.0802
+📊 Epoch 2/20 | Val Acc: 0.1299
+📊 Epoch 3/20 | Val Acc: 0.1709
+📊 Epoch 4/20 | Val Acc: 0.1674
+📊 Epoch 5/20 | Val Acc: 0.2127
+📊 Epoch 6/20 | Val Acc: 0.2258
+📊 Epoch 7/20 | Val Acc: 0.2511
+📊 Epoch 8/20 | Val Acc: 0.2546
+📊 Epoch 9/20 | Val Acc: 0.3592
+📊 Epoch 10/20 | Val Acc: 0.3540
+📊 Epoch 11/20 | Val Acc: 0.4202
+📊 Epoch 12/20 | Val Acc: 0.3906
+📊 Epoch 13/20 | Val Acc: 0.4647
+📊 Epoch 14/20 | Val Acc: 0.4638
+📊 Epoch 15/20 | Val Acc: 0.4298
+📊 Epoch 16/20 | Val Acc: 0.5240
+📊 Epoch 17/20 | Val Acc: 0.4865
+📊 Epoch 18/20 | Val Acc: 0.4996
+📊 Epoch 19/20 | Val Acc: 0.5580
+[I 2025-07-31 23:13:45,756] Trial 9 finished with value: 0.5510026155187445 and parameters: {'lr': 0.006673329452388044, 'weight_decay': 8.583563304491494e-05}. Best is trial 1 with value: 0.6861377506538797.
+📊 Epoch 20/20 | Val Acc: 0.5510
+✅ Dataset split complete.
+Train: 4585 | Val: 1147 | Test: 2457
+/usr/local/lib/python3.11/dist-packages/torchvision/models/_utils.py:208: UserWarning: The parameter 'pretrained' is deprecated since 0.13 and may be removed in the future, please use 'weights' instead.
+  warnings.warn(
+/usr/local/lib/python3.11/dist-packages/torchvision/models/_utils.py:223: UserWarning: Arguments other than a weight enum or `None` for 'weights' are deprecated since 0.13 and may be removed in the future. The current behavior is equivalent to passing `weights=None`.
+  warnings.warn(msg)
+📊 Epoch 1/20 | Val Acc: 0.1369
+📊 Epoch 2/20 | Val Acc: 0.3069
+📊 Epoch 3/20 | Val Acc: 0.3609
+📊 Epoch 4/20 | Val Acc: 0.3627
+📊 Epoch 5/20 | Val Acc: 0.3976
+📊 Epoch 6/20 | Val Acc: 0.4464
+📊 Epoch 7/20 | Val Acc: 0.4176
+📊 Epoch 8/20 | Val Acc: 0.5065
+📊 Epoch 9/20 | Val Acc: 0.5501
+📊 Epoch 10/20 | Val Acc: 0.5161
+📊 Epoch 11/20 | Val Acc: 0.5667
+📊 Epoch 12/20 | Val Acc: 0.5920
+📊 Epoch 13/20 | Val Acc: 0.5745
+📊 Epoch 14/20 | Val Acc: 0.5737
+📊 Epoch 15/20 | Val Acc: 0.5876
+📊 Epoch 16/20 | Val Acc: 0.6024
+📊 Epoch 17/20 | Val Acc: 0.6129
+📊 Epoch 18/20 | Val Acc: 0.6443
+📊 Epoch 19/20 | Val Acc: 0.6548
+[I 2025-07-31 23:18:34,990] Trial 10 finished with value: 0.6434176111595467 and parameters: {'lr': 0.00010098688132279188, 'weight_decay': 0.0046067086447619}. Best is trial 1 with value: 0.6861377506538797.
+📊 Epoch 20/20 | Val Acc: 0.6434
+✅ Dataset split complete.
+Train: 4585 | Val: 1147 | Test: 2457
+/usr/local/lib/python3.11/dist-packages/torchvision/models/_utils.py:208: UserWarning: The parameter 'pretrained' is deprecated since 0.13 and may be removed in the future, please use 'weights' instead.
+  warnings.warn(
+/usr/local/lib/python3.11/dist-packages/torchvision/models/_utils.py:223: UserWarning: Arguments other than a weight enum or `None` for 'weights' are deprecated since 0.13 and may be removed in the future. The current behavior is equivalent to passing `weights=None`.
+  warnings.warn(msg)
+📊 Epoch 1/20 | Val Acc: 0.1683
+📊 Epoch 2/20 | Val Acc: 0.2982
+📊 Epoch 3/20 | Val Acc: 0.2964
+📊 Epoch 4/20 | Val Acc: 0.3880
+📊 Epoch 5/20 | Val Acc: 0.4150
+📊 Epoch 6/20 | Val Acc: 0.4255
+📊 Epoch 7/20 | Val Acc: 0.4856
+📊 Epoch 8/20 | Val Acc: 0.4647
+📊 Epoch 9/20 | Val Acc: 0.4743
+📊 Epoch 10/20 | Val Acc: 0.5196
+📊 Epoch 11/20 | Val Acc: 0.5580
+📊 Epoch 12/20 | Val Acc: 0.5414
+📊 Epoch 13/20 | Val Acc: 0.5353
+📊 Epoch 14/20 | Val Acc: 0.5571
+📊 Epoch 15/20 | Val Acc: 0.5562
+📊 Epoch 16/20 | Val Acc: 0.5789
+📊 Epoch 17/20 | Val Acc: 0.6173
+📊 Epoch 18/20 | Val Acc: 0.6321
+📊 Epoch 19/20 | Val Acc: 0.6234
+[I 2025-07-31 23:23:23,730] Trial 11 finished with value: 0.6486486486486487 and parameters: {'lr': 0.00011533123002583776, 'weight_decay': 0.001567890535167952}. Best is trial 1 with value: 0.6861377506538797.
+📊 Epoch 20/20 | Val Acc: 0.6486
+✅ Dataset split complete.
+Train: 4585 | Val: 1147 | Test: 2457
+/usr/local/lib/python3.11/dist-packages/torchvision/models/_utils.py:208: UserWarning: The parameter 'pretrained' is deprecated since 0.13 and may be removed in the future, please use 'weights' instead.
+  warnings.warn(
+/usr/local/lib/python3.11/dist-packages/torchvision/models/_utils.py:223: UserWarning: Arguments other than a weight enum or `None` for 'weights' are deprecated since 0.13 and may be removed in the future. The current behavior is equivalent to passing `weights=None`.
+  warnings.warn(msg)
+📊 Epoch 1/20 | Val Acc: 0.1883
+📊 Epoch 2/20 | Val Acc: 0.2903
+📊 Epoch 3/20 | Val Acc: 0.3365
+📊 Epoch 4/20 | Val Acc: 0.2554
+📊 Epoch 5/20 | Val Acc: 0.3697
+📊 Epoch 6/20 | Val Acc: 0.3130
+📊 Epoch 7/20 | Val Acc: 0.3958
+📊 Epoch 8/20 | Val Acc: 0.3557
+📊 Epoch 9/20 | Val Acc: 0.3941
+📊 Epoch 10/20 | Val Acc: 0.4969
+📊 Epoch 11/20 | Val Acc: 0.4786
+📊 Epoch 12/20 | Val Acc: 0.5257
+📊 Epoch 13/20 | Val Acc: 0.5118
+📊 Epoch 14/20 | Val Acc: 0.5824
+📊 Epoch 15/20 | Val Acc: 0.5876
+📊 Epoch 16/20 | Val Acc: 0.6434
+📊 Epoch 17/20 | Val Acc: 0.5998
+📊 Epoch 18/20 | Val Acc: 0.5545
+📊 Epoch 19/20 | Val Acc: 0.6382
+[I 2025-07-31 23:28:11,501] Trial 12 finished with value: 0.6355710549258936 and parameters: {'lr': 0.000252092242113546, 'weight_decay': 0.0019296160471207655}. Best is trial 1 with value: 0.6861377506538797.
+📊 Epoch 20/20 | Val Acc: 0.6356
+✅ Dataset split complete.
+Train: 4585 | Val: 1147 | Test: 2457
+/usr/local/lib/python3.11/dist-packages/torchvision/models/_utils.py:208: UserWarning: The parameter 'pretrained' is deprecated since 0.13 and may be removed in the future, please use 'weights' instead.
+  warnings.warn(
+/usr/local/lib/python3.11/dist-packages/torchvision/models/_utils.py:223: UserWarning: Arguments other than a weight enum or `None` for 'weights' are deprecated since 0.13 and may be removed in the future. The current behavior is equivalent to passing `weights=None`.
+  warnings.warn(msg)
+📊 Epoch 1/20 | Val Acc: 0.1543
+📊 Epoch 2/20 | Val Acc: 0.1988
+📊 Epoch 3/20 | Val Acc: 0.2302
+📊 Epoch 4/20 | Val Acc: 0.1665
+📊 Epoch 5/20 | Val Acc: 0.3017
+📊 Epoch 6/20 | Val Acc: 0.2764
+📊 Epoch 7/20 | Val Acc: 0.3836
+📊 Epoch 8/20 | Val Acc: 0.4499
+📊 Epoch 9/20 | Val Acc: 0.5022
+📊 Epoch 10/20 | Val Acc: 0.5353
+📊 Epoch 11/20 | Val Acc: 0.3653
+📊 Epoch 12/20 | Val Acc: 0.4882
+📊 Epoch 13/20 | Val Acc: 0.4534
+📊 Epoch 14/20 | Val Acc: 0.4019
+📊 Epoch 15/20 | Val Acc: 0.4969
+📊 Epoch 16/20 | Val Acc: 0.5763
+📊 Epoch 17/20 | Val Acc: 0.6260
+📊 Epoch 18/20 | Val Acc: 0.6643
+📊 Epoch 19/20 | Val Acc: 0.6626
+[I 2025-07-31 23:33:00,617] Trial 13 finished with value: 0.6922406277244987 and parameters: {'lr': 0.0003498223657876835, 'weight_decay': 0.0007347274364999834}. Best is trial 13 with value: 0.6922406277244987.
+📊 Epoch 20/20 | Val Acc: 0.6922
+✅ Dataset split complete.
+Train: 4585 | Val: 1147 | Test: 2457
+/usr/local/lib/python3.11/dist-packages/torchvision/models/_utils.py:208: UserWarning: The parameter 'pretrained' is deprecated since 0.13 and may be removed in the future, please use 'weights' instead.
+  warnings.warn(
+/usr/local/lib/python3.11/dist-packages/torchvision/models/_utils.py:223: UserWarning: Arguments other than a weight enum or `None` for 'weights' are deprecated since 0.13 and may be removed in the future. The current behavior is equivalent to passing `weights=None`.
+  warnings.warn(msg)
+📊 Epoch 1/20 | Val Acc: 0.1892
+📊 Epoch 2/20 | Val Acc: 0.2624
+📊 Epoch 3/20 | Val Acc: 0.3235
+📊 Epoch 4/20 | Val Acc: 0.2633
+📊 Epoch 5/20 | Val Acc: 0.3723
+📊 Epoch 6/20 | Val Acc: 0.3330
+📊 Epoch 7/20 | Val Acc: 0.3784
+📊 Epoch 8/20 | Val Acc: 0.4133
+📊 Epoch 9/20 | Val Acc: 0.4150
+📊 Epoch 10/20 | Val Acc: 0.4438
+📊 Epoch 11/20 | Val Acc: 0.3278
+📊 Epoch 12/20 | Val Acc: 0.3479
+📊 Epoch 13/20 | Val Acc: 0.5248
+📊 Epoch 14/20 | Val Acc: 0.6138
+📊 Epoch 15/20 | Val Acc: 0.5632
+📊 Epoch 16/20 | Val Acc: 0.4891
+📊 Epoch 17/20 | Val Acc: 0.5545
+📊 Epoch 18/20 | Val Acc: 0.6347
+📊 Epoch 19/20 | Val Acc: 0.6260
+[I 2025-07-31 23:37:54,694] Trial 14 finished with value: 0.5623365300784655 and parameters: {'lr': 0.0003641084038322838, 'weight_decay': 0.0005888369597176447}. Best is trial 13 with value: 0.6922406277244987.
+📊 Epoch 20/20 | Val Acc: 0.5623
+✅ Best Params for resnet18 on flowers: {'lr': 0.0003498223657876835, 'weight_decay': 0.0007347274364999834}
+🏁 Best Val Accuracy: 0.6922
+
+✅ Finished Optuna HPO for ResNet18 on flowers
+Best LR: 0.0003498223657876835
+Best Weight Decay: 0.0007347274364999834
+Best Final Accuracy: 0.6922
