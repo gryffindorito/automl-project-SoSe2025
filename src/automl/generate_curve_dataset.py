@@ -3,6 +3,8 @@ import torch
 
 from automl.curve_predictor import train_and_record_curve  # ✅ Absolute import for Colab
 from automl.utils import set_seed
+from automl.dataloader_utils import get_dataloaders
+from automl.models import get_model
 
 # 🧠 Best hyperparameters per model from Optuna (regardless of dataset)
 model_hpo = {
@@ -34,13 +36,30 @@ def run_curve_mode(args):
     os.makedirs(args.curve_dir, exist_ok=True)
     curve_path = os.path.join(args.curve_dir, f"curve_dataset_{args.dataset}_{args.model}.pt")
 
+    # 📦 Load data and model
+    train_loader, val_loader, _ = get_dataloaders(args.dataset, root=args.data_dir, batch_size=64)
+    first_batch = next(iter(train_loader))[0]
+    in_channels = first_batch.shape[1]
+
+    base = train_loader.dataset
+    base = base.dataset if hasattr(base, "dataset") else base
+    labels = [int(base[i][1]) for i in range(len(base))]
+    num_classes = len(set(labels))
+
+    model = get_model(args.model, num_classes=num_classes, in_channels=in_channels).to(args.device)
+
+    # 🧪 Train and record learning curve
     train_and_record_curve(
-        model_name=args.model,
-        dataset_name=args.dataset,
+        model=model,
+        train_loader=train_loader,
+        val_loader=val_loader,
+        num_epochs=args.curve_epochs,
+        device=args.device,
         lr=config["lr"],
-        weight_decay=config["weight_decay"],
+        wd=config["weight_decay"],
         optimizer_type=config["optimizer_type"],
         scheduler_type=config["scheduler_type"],
-        epochs=50,
-        save_path=curve_path
+        curve_path=curve_path,
+        model_name=args.model,
+        dataset_name=args.dataset
     )

@@ -38,14 +38,9 @@ def main():
 
     if args.mode == "curve":
         print(f"\n📈 Generating learning curves for dataset={args.dataset} | epochs={args.curve_epochs}")
-        run_curve_mode(
-            model_names=args.models,
-            dataset_names=[args.dataset],
-            save_path=args.output,
-            dataset_dir=args.data_dir,
-            device=args.device,
-            max_epoch=args.curve_epochs
-        )
+        for model_name in args.models:
+            args.model = model_name
+            run_curve_mode(args)
 
     elif args.mode == "synflow":
         print(f"\n🔬 Calculating SynFlow scores for models in {args.curve_path}...\n")
@@ -138,7 +133,6 @@ def main():
             )
 
             print(f"📈 Final accuracy after 10 epochs: {curve[-1]:.4f}")
-
 
     elif args.mode == "full_automl":
         print(f"\n🤖 Running full AutoML pipeline on {args.dataset}...\n")
