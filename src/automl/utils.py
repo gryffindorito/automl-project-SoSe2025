@@ -1,8 +1,19 @@
 from typing import Any
+import random
+import numpy as np
+import torch
 
 from torch.utils.data import DataLoader
 from torchvision import transforms
 
+def set_seed(seed: int = 42):
+    """Set seed for reproducibility."""
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
 
 def calculate_mean_std(dataset_class: Any):
     """Calculate the mean and standard deviation of the entire image dataset."""

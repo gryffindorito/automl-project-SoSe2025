@@ -1,7 +1,7 @@
 import argparse
 import torch
 import os
-from src.automl.generate_curve_dataset import generate_curve_dataset, train_and_record_curve
+from src.automl.generate_curve_dataset import run_curve_mode, train_and_record_curve
 from src.automl.curve_predictor import train_regressor, evaluate_regressor
 from src.automl.automl import AutoML
 from src.automl.synflow import compute_synflow_score
@@ -32,12 +32,13 @@ def main():
     parser.add_argument('--data_dir', type=str, default='/content/automl_data',)
     parser.add_argument('--curve_path', default="curve_dataset.pt",
                     help="Path to saved curve dataset (.pt file)")
+    parser.add_argument("--curve-dir", type=str, default="curve_data/", help="Directory to save curve dataset files")
     args = parser.parse_args()
     args.regressor_path = f"regressor_{args.dataset}.pkl"
 
     if args.mode == "curve":
         print(f"\n📈 Generating learning curves for dataset={args.dataset} | epochs={args.curve_epochs}")
-        generate_curve_dataset(
+        run_curve_mode(
             model_names=args.models,
             dataset_names=[args.dataset],
             save_path=args.output,
