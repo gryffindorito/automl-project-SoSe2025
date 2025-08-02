@@ -7,9 +7,6 @@ from tqdm import tqdm
 import torch.nn.functional as F
 import os
 
-def get_curve(metrics_dict):
-    return [metrics_dict[epoch] for epoch in sorted(metrics_dict)]
-
 def train_and_record_curve(
     model, train_loader, val_loader,
     num_epochs=20, device="cuda",
@@ -37,6 +34,10 @@ def train_and_record_curve(
     model.train()
     val_accuracies = []
     val_losses = []
+
+    # Touch file so that it exists (in case of early interrupt)
+    if curve_path and not os.path.exists(curve_path):
+        torch.save([], curve_path)
 
     for epoch in range(num_epochs):
         # Train loop
@@ -71,25 +72,29 @@ def train_and_record_curve(
         print(f"📊 Epoch {epoch+1}/{num_epochs} | Val Acc: {acc:.4f} | Val Loss: {avg_loss:.4f}")
         model.train()
 
-    # Save curve record
-    if curve_path:
-        record = {
-            "model": model_name,
-            "dataset": dataset_name,
-            "acc_curve": val_accuracies,
-            "loss_curve": val_losses
-        }
+        # ✅ Save progress after every epoch
+        if curve_path:
+            record = {
+                "model": model_name,
+                "dataset": dataset_name,
+                "acc_curve": val_accuracies.copy(),
+                "loss_curve": val_losses.copy()
+            }
 
-        if os.path.exists(curve_path):
-            data = torch.load(curve_path)
+            try:
+                data = torch.load(curve_path)
+            except:
+                data = []
+
+            # Remove duplicates
+            data = [d for d in data if not (d["model"] == model_name and d["dataset"] == dataset_name)]
             data.append(record)
-        else:
-            data = [record]
-
-        torch.save(data, curve_path)
-        print(f"💾 Saved curve data to {curve_path}")
+            torch.save(data, curve_path)
+            print(f"💾 Saved progress to {curve_path} after epoch {epoch+1}/{num_epochs}")
 
     return model, val_accuracies, val_losses
+
+
 
 def build_feature_vector(synflow_score, acc_prefix, loss_prefix):
     return np.array([synflow_score] + acc_prefix + loss_prefix)
