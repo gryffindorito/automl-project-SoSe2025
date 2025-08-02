@@ -38,8 +38,8 @@ def main():
 
     if args.mode == "curve":
         print(f"\n📈 Generating learning curves for dataset={args.dataset} | epochs={args.curve_epochs}")
-        for model_name in args.models:
-            args.model = model_name
+        for model in args.models:
+            args.model = model
             run_curve_mode(args)
 
     elif args.mode == "synflow":
@@ -80,9 +80,11 @@ def main():
         for item in data:
             if "synflow" not in item:
                 raise ValueError("SynFlow score missing from curve data.")
-            feature = np.array([item["synflow"]] + item["curve"][:5])
+            accs = item["curve"][:10]
+            losses = item["val_loss"][:10]
+            feature = np.array([item["synflow"]] + accs + losses)
             X.append(feature)
-            y.append(item["curve"][-1])
+            y.append(item["curve"][-1])  # final accuracy at epoch 50
 
         train_regressor(X, y, save_path=args.regressor_path)
         print(f"✅ Regressor saved to {args.regressor_path}")
@@ -95,9 +97,11 @@ def main():
         for item in data:
             if "synflow" not in item:
                 raise ValueError("SynFlow score missing from curve data.")
-            feature = np.array([item["synflow"]] + item["curve"][:5])
+            accs = item["curve"][:10]
+            losses = item["val_loss"][:10]
+            feature = np.array([item["synflow"]] + accs + losses)
             X.append(feature)
-            y.append(item["curve"][-1])
+            y.append(item["curve"][-1])  # final accuracy at epoch 50
 
         r2 = evaluate_regressor(args.regressor_path, X, y)
         print(f"📈 R² Score: {r2:.4f}")

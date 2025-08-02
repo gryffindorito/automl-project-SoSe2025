@@ -48,8 +48,8 @@ def run_curve_mode(args):
 
     model = get_model(args.model, num_classes=num_classes, in_channels=in_channels).to(args.device)
 
-    # 🧪 Train and record learning curve
-    train_and_record_curve(
+    # 🧪 Train and record learning curve (both accuracy and loss)
+    results = train_and_record_curve(
         model=model,
         train_loader=train_loader,
         val_loader=val_loader,
@@ -59,7 +59,13 @@ def run_curve_mode(args):
         wd=config["weight_decay"],
         optimizer_type=config["optimizer_type"],
         scheduler_type=config["scheduler_type"],
-        curve_path=curve_path,
-        model_name=args.model,
-        dataset_name=args.dataset
     )
+
+    # 📊 Save results
+    torch.save({
+        "model": args.model,
+        "dataset": args.dataset,
+        "val_accuracies": results["val_accuracies"],
+        "val_losses": results["val_losses"]
+    }, curve_path)
+    print(f"✅ Curve saved to {curve_path}")

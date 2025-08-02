@@ -32,25 +32,14 @@ def train_and_record_curve(
     else:
         scheduler = None
 
-    # Load previous curve file if exists
-    existing_data = []
-    if curve_path and os.path.exists(curve_path):
-        existing_data = torch.load(curve_path)
-        for item in existing_data:
-            if item["model"] == model_name and item["dataset"] == dataset_name:
-                curve = item["curve"]
-                break
-        else:
-            curve = []
-            existing_data.append({"model": model_name, "dataset": dataset_name, "curve": curve})
-    else:
-        curve = []
-        existing_data.append({"model": model_name, "dataset": dataset_name, "curve": curve})
-
+    # Init
     model.to(device)
     model.train()
+    val_accuracies = []
+    val_losses = []
 
-    for epoch in range(len(curve), num_epochs):
+    for epoch in range(num_epochs):
+        # Train loop
         for images, labels in train_loader:
             images, labels = images.to(device), labels.to(device)
             optimizer.zero_grad()
@@ -62,9 +51,9 @@ def train_and_record_curve(
         if scheduler:
             scheduler.step()
 
-        # Eval
+        # Eval loop
         model.eval()
-        correct, total = 0, 0
+        correct, total, total_loss = 0, 0, 0.0
         with torch.no_grad():
             for images, labels in val_loader:
                 images, labels = images.to(device), labels.to(device)
@@ -72,24 +61,49 @@ def train_and_record_curve(
                 preds = torch.argmax(logits, dim=1)
                 correct += (preds == labels).sum().item()
                 total += labels.size(0)
+                total_loss += F.cross_entropy(logits, labels, reduction="sum").item()
+
         acc = correct / total
-        curve.append(acc)
-        print(f"📊 Epoch {epoch+1}/{num_epochs} | Val Acc: {acc:.4f}")
+        avg_loss = total_loss / total
+        val_accuracies.append(acc)
+        val_losses.append(avg_loss)
 
-        # Save
-        if curve_path:
-            torch.save(existing_data, curve_path)
-            print(f"💾 Saved progress after epoch {epoch+1}/{num_epochs}")
-
+        print(f"📊 Epoch {epoch+1}/{num_epochs} | Val Acc: {acc:.4f} | Val Loss: {avg_loss:.4f}")
         model.train()
 
-    return model, curve, existing_data
+    # Save curve record
+    if curve_path:
+        record = {
+            "model": model_name,
+            "dataset": dataset_name,
+            "acc_curve": val_accuracies,
+            "loss_curve": val_losses
+        }
 
+        if os.path.exists(curve_path):
+            data = torch.load(curve_path)
+            data.append(record)
+        else:
+            data = [record]
 
-def build_feature_vector(synflow_score, curve_prefix):
-    return np.array([synflow_score] + curve_prefix)
+        torch.save(data, curve_path)
+        print(f"💾 Saved curve data to {curve_path}")
 
-def train_regressor(X, y, save_path="regressor.pkl"):
+    return model, val_accuracies, val_losses
+
+def build_feature_vector(synflow_score, acc_prefix, loss_prefix):
+    return np.array([synflow_score] + acc_prefix + loss_prefix)
+
+def train_regressor(data, save_path="regressor.pkl"):
+    X, y = [], []
+    for item in data:
+        feature = build_feature_vector(
+            item["synflow"],
+            item["acc_curve"][:10],
+            item["loss_curve"][:10]
+        )
+        X.append(feature)
+        y.append(item["acc_curve"][-1])
     model = xgb.XGBRegressor(
         n_estimators=50,
         max_depth=3,
@@ -101,19 +115,27 @@ def train_regressor(X, y, save_path="regressor.pkl"):
     print(f"✅ XGBoost regressor saved to {save_path}")
     return model
 
-def predict_final_accuracy(model_path, synflow_score, curve_prefix):
+def predict_final_accuracy(model_path, synflow_score, acc_prefix, loss_prefix):
     model = joblib.load(model_path)
-    X = build_feature_vector(synflow_score, curve_prefix).reshape(1, -1)
+    X = build_feature_vector(synflow_score, acc_prefix, loss_prefix).reshape(1, -1)
     return model.predict(X)[0]
 
-def evaluate_regressor(model_path, X_test, y_test):
+def evaluate_regressor(model_path, data):
     model = joblib.load(model_path)
-    preds = model.predict(X_test)
-    if len(y_test) < 2:
+    X, y = [], []
+    for item in data:
+        feature = build_feature_vector(
+            item["synflow"],
+            item["acc_curve"][:10],
+            item["loss_curve"][:10]
+        )
+        X.append(feature)
+        y.append(item["acc_curve"][-1])
+    preds = model.predict(X)
+    if len(y) < 2:
         print("⚠️ Only one sample — R² score is not well-defined.")
         return None
-    return r2_score(y_test, preds)
-
+    return r2_score(y, preds)
 
 __all__ = [
     "get_curve",
