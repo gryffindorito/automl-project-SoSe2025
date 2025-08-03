@@ -3,10 +3,8 @@ import torch
 import numpy as np
 from .models import build_model
 from .trainer import train
-from .synflow import compute_synflow_score
 from .curve_predictor import predict_final_accuracy
 from .dataloader_utils import get_dataloaders
-
 
 class AutoML:
     def __init__(self, dataset_name, device='cpu', data_dir='data',
@@ -15,7 +13,6 @@ class AutoML:
         self.device = device
         self.data_dir = data_dir
 
-        # Default to expected filenames if not provided
         self.curve_path = curve_path or f"curve_dataset_{dataset_name}.pt"
         self.regressor_path = regressor_path or f"regressor_{dataset_name}.pkl"
 
@@ -27,8 +24,9 @@ class AutoML:
         self.num_classes = {
             "fashion": 10,
             "flowers": 102,
-            "emotions": 7
-        }[dataset_name]
+            "emotions": 7,
+            "intel": 6
+        }.get(dataset_name, None)
 
     def run(self):
         print(f"\n🔍 Running AutoML for dataset: {self.dataset_name}")
@@ -44,24 +42,31 @@ class AutoML:
         best_score = -1e9
         best_model_name = None
 
-        # Load SynFlow+curve dataset
+        # Load curve dataset
         print(f"📦 Loading curve dataset from {self.curve_path}")
         data = torch.load(self.curve_path)
-        synflow_dict = {model_name: synflow for model_name, _, synflow in data}
-        curve_dict = {model_name: curve for model_name, curve, _ in data}
 
         for model_name in model_names:
             print(f"\n🔧 Evaluating {model_name}...")
 
-            if model_name not in curve_dict or model_name not in synflow_dict:
-                print(f"❌ Missing curve or synflow for {model_name}, skipping.")
+            entry = next((d for d in data if d["model"] == model_name), None)
+            if not entry:
+                print(f"❌ No curve data for {model_name}, skipping.")
                 continue
 
-            curve = curve_dict[model_name]
-            synflow = synflow_dict[model_name]
+            # Prepare item for regressor input
+            item = {
+                "model": model_name,
+                "acc_curve": entry["acc_curve"],
+                "loss_curve": entry["loss_curve"]
+            }
 
-            pred_acc = predict_final_accuracy(self.regressor_path, synflow, curve[:5])
-            print(f"📈 Predicted final accuracy: {pred_acc:.4f}")
+            try:
+                pred_acc = predict_final_accuracy(self.regressor_path, item)
+                print(f"📈 Predicted final accuracy: {pred_acc:.4f}")
+            except Exception as e:
+                print(f"❌ Failed to predict for {model_name}: {e}")
+                continue
 
             if pred_acc > best_score:
                 best_score = pred_acc
