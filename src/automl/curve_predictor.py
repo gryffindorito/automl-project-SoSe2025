@@ -1,11 +1,12 @@
 import torch
 import numpy as np
-import xgboost as xgb
 import joblib
 from sklearn.metrics import r2_score
-from tqdm import tqdm
+from sklearn.linear_model import Ridge
 import torch.nn.functional as F
 import os
+
+MODEL_MAP = {"resnet18": 0, "mobilenet_v2": 1, "efficientnet_b0": 2}
 
 def train_and_record_curve(
     model, train_loader, val_loader,
@@ -13,7 +14,6 @@ def train_and_record_curve(
     lr=1e-3, wd=1e-4, optimizer_type="adamw", scheduler_type=None,
     curve_path=None, model_name=None, dataset_name=None
 ):
-    # Optimizer
     if optimizer_type == "adamw":
         optimizer = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=wd)
     elif optimizer_type == "adam":
@@ -21,7 +21,6 @@ def train_and_record_curve(
     else:
         raise ValueError(f"Unsupported optimizer: {optimizer_type}")
 
-    # Scheduler
     if scheduler_type == "cosine":
         scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=num_epochs)
     elif scheduler_type == "step":
@@ -29,18 +28,15 @@ def train_and_record_curve(
     else:
         scheduler = None
 
-    # Init
     model.to(device)
     model.train()
     val_accuracies = []
     val_losses = []
 
-    # Touch file so that it exists (in case of early interrupt)
     if curve_path and not os.path.exists(curve_path):
         torch.save([], curve_path)
 
     for epoch in range(num_epochs):
-        # Train loop
         for images, labels in train_loader:
             images, labels = images.to(device), labels.to(device)
             optimizer.zero_grad()
@@ -52,7 +48,6 @@ def train_and_record_curve(
         if scheduler:
             scheduler.step()
 
-        # Eval loop
         model.eval()
         correct, total, total_loss = 0, 0, 0.0
         with torch.no_grad():
@@ -72,7 +67,6 @@ def train_and_record_curve(
         print(f"📊 Epoch {epoch+1}/{num_epochs} | Val Acc: {acc:.4f} | Val Loss: {avg_loss:.4f}")
         model.train()
 
-        # ✅ Save progress after every epoch
         if curve_path:
             record = {
                 "model": model_name,
@@ -80,13 +74,11 @@ def train_and_record_curve(
                 "acc_curve": val_accuracies.copy(),
                 "loss_curve": val_losses.copy()
             }
-
             try:
                 data = torch.load(curve_path)
             except:
                 data = []
 
-            # Remove duplicates
             data = [d for d in data if not (d["model"] == model_name and d["dataset"] == dataset_name)]
             data.append(record)
             torch.save(data, curve_path)
@@ -94,48 +86,53 @@ def train_and_record_curve(
 
     return model, val_accuracies, val_losses
 
+def extract_features(item):
+    acc = item["acc_curve"][:10]
+    loss = item["loss_curve"][:10]
+    acc_deltas = [acc[i+1] - acc[i] for i in range(9)]
+    loss_deltas = [loss[i+1] - loss[i] for i in range(9)]
 
+    # Slopes via linear fit
+    epochs = np.arange(1, 11)
+    acc_slope = np.polyfit(epochs, acc, 1)[0]
+    loss_slope = np.polyfit(epochs, loss, 1)[0]
 
-def build_feature_vector(synflow_score, acc_prefix, loss_prefix):
-    return np.array([synflow_score] + acc_prefix + loss_prefix)
+    # Plateau detection: final acc delta very low
+    plateau = 1.0 if acc_deltas[-1] < 0.001 else 0.0
+
+    # Loss drop (loss[10] - loss[1])
+    loss_drop = loss[-1] - loss[0]
+
+    # Model one-hot
+    model_one_hot = [0, 0, 0]
+    if item["model"] in MODEL_MAP:
+        model_one_hot[MODEL_MAP[item["model"]]] = 1
+
+    return np.array(acc + loss + acc_deltas + loss_deltas + [acc_slope, loss_slope, loss_drop, plateau] + model_one_hot)
 
 def train_regressor(data, save_path="regressor.pkl"):
     X, y = [], []
     for item in data:
-        feature = build_feature_vector(
-            item["synflow"],
-            item["acc_curve"][:10],
-            item["loss_curve"][:10]
-        )
-        X.append(feature)
-        y.append(item["acc_curve"][-1])
-    model = xgb.XGBRegressor(
-        n_estimators=50,
-        max_depth=3,
-        learning_rate=0.1,
-        verbosity=0
-    )
+        features = extract_features(item)
+        X.append(features)
+        y.append(item["acc_curve"][49])  # Epoch 50
+    model = Ridge(alpha=1.0)
     model.fit(X, y)
     joblib.dump(model, save_path)
-    print(f"✅ XGBoost regressor saved to {save_path}")
+    print(f"✅ Ridge regressor saved to {save_path}")
     return model
 
-def predict_final_accuracy(model_path, synflow_score, acc_prefix, loss_prefix):
+def predict_final_accuracy(model_path, item):
     model = joblib.load(model_path)
-    X = build_feature_vector(synflow_score, acc_prefix, loss_prefix).reshape(1, -1)
+    X = extract_features(item).reshape(1, -1)
     return model.predict(X)[0]
 
 def evaluate_regressor(model_path, data):
     model = joblib.load(model_path)
     X, y = [], []
     for item in data:
-        feature = build_feature_vector(
-            item["synflow"],
-            item["acc_curve"][:10],
-            item["loss_curve"][:10]
-        )
-        X.append(feature)
-        y.append(item["acc_curve"][-1])
+        X.append(extract_features(item))
+        y.append(item["acc_curve"][49])
     preds = model.predict(X)
     if len(y) < 2:
         print("⚠️ Only one sample — R² score is not well-defined.")
@@ -143,9 +140,7 @@ def evaluate_regressor(model_path, data):
     return r2_score(y, preds)
 
 __all__ = [
-    "get_curve",
     "train_and_record_curve",
-    "build_feature_vector",
     "train_regressor",
     "predict_final_accuracy",
     "evaluate_regressor"
