@@ -34,7 +34,10 @@ def main():
                     help="Optional override path for regressor .pkl file")
 
     args = parser.parse_args()
-    args.regressor_path = f"regressor_{args.dataset}.pkl"
+    if args.mode in ["full_automl", "train_regressor", "eval_regressor"]:
+        args.regressor_path = args.regressor_path or f"regressor_{args.dataset}.pkl"
+        print(f"📎 Using regressor: {args.regressor_path}")
+
 
     if args.mode == "curve":
         print(f"\n📈 Generating learning curves for dataset={args.dataset} | epochs={args.curve_epochs}")

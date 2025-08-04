@@ -107,7 +107,14 @@ def train_and_record_curve(
             torch.save(data, curve_path)
             print(f"💾 Saved progress to {curve_path} after epoch {epoch+1}/{num_epochs}")
 
+    # ✅ Save final model weights (if applicable)
+    if curve_path:
+        weights_path = curve_path.replace(".pt", "_weights.pt")
+        torch.save(model.state_dict(), weights_path)
+        print(f"💾 Saved model weights to {weights_path}")
+
     return model, val_accuracies, val_losses
+
 
 
 def extract_features(item):
