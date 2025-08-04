@@ -30,6 +30,27 @@ model_hpo = {
     }
 }
 
+def train_per_model_regressors(data, save_dir="model_regressors"):
+    os.makedirs(save_dir, exist_ok=True)
+
+    by_model = {"resnet18": [], "mobilenet_v2": [], "efficientnet_b0": []}
+    for item in data:
+        if item["model"] in by_model:
+            by_model[item["model"]].append(item)
+
+    for model_name, model_data in by_model.items():
+        if not model_data:
+            print(f"⚠️ No data for {model_name}, skipping.")
+            continue
+        print(f"🎓 Training regressor for {model_name} on {len(model_data)} samples")
+        model = Ridge(alpha=1.0)
+        X = [extract_features(item) for item in model_data]
+        y = [item["acc_curve"][49] for item in model_data]
+        model.fit(X, y)
+        path = os.path.join(save_dir, f"{model_name}_regressor.pkl")
+        joblib.dump(model, path)
+        print(f"✅ Saved {model_name} regressor to {path}")
+
 
 def train_and_record_curve(
     model, train_loader, val_loader,
@@ -228,7 +249,10 @@ def run_full_automl(dataset_name, regressor_path, device='cuda', data_dir='/cont
         all_records.append(item)
 
         try:
-            pred_acc = predict_final_accuracy(regressor_path, item)
+            from os.path import join
+            regressor_path_model = join(regressor_path, f"{model_name}_regressor.pkl")
+            pred_acc = predict_final_accuracy(regressor_path_model, item)
+
             print(f"📈 {model_name} → Predicted acc50: {pred_acc:.4f}")
             if pred_acc > best_score:
                 best_score = pred_acc

@@ -29,12 +29,18 @@ model_hpo = {
 }
 
 def run_curve_mode(args):
-    # 🎯 Always use fixed seed for reproducibility
-    set_seed(42)
+    # 🎯 Use seed from CLI args instead of fixed 42
+    set_seed(args.seed)
+    print(f"🌱 Using seed: {args.seed}")
 
     config = model_hpo[args.model]
     os.makedirs(args.curve_dir, exist_ok=True)
-    curve_path = os.path.join(args.curve_dir, f"curve_dataset_{args.dataset}_{args.model}.pt")
+
+    # 🗃️ Save curve with seed in name to distinguish runs
+    curve_path = os.path.join(
+        args.curve_dir,
+        f"curve_dataset_{args.dataset}_{args.model}_seed{args.seed}.pt"
+    )
 
     # 📦 Load data and model
     train_loader, val_loader, _ = get_dataloaders(args.dataset, root=args.data_dir, batch_size=64)

@@ -29,6 +29,7 @@ def main():
     parser.add_argument('--data_dir', type=str, default='/content/automl_data')
     parser.add_argument('--curve_path', default="curve_dataset.pt",
                         help="Path to saved curve dataset (.pt file)")
+    parser.add_argument("--seed", type=int, default=42, help="Random seed (default: 42)")
     parser.add_argument("--curve-dir", type=str, default="curve_data/", help="Directory to save curve dataset files")
     parser.add_argument('--regressor_path', type=str, default=None,
                     help="Optional override path for regressor .pkl file")
