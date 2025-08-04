@@ -1,0 +1,72 @@
+📎 Using regressor: regressor_all.pkl
+
+🤖 Running full AutoML pipeline on intel...
+
+📎 Using regressor: regressor_all.pkl
+📁 Using data_dir: /content/automl_data
+
+🤖 AutoML selecting best model for intel...
+📂 Loading dataset from: /content/automl_data/intel
+
+🚀 Training resnet18 for 10 epochs...
+✅ Dataset split complete.
+Train: 11226 | Val: 2807 | Test: 2999
+/usr/local/lib/python3.11/dist-packages/torchvision/models/_utils.py:208: UserWarning: The parameter 'pretrained' is deprecated since 0.13 and may be removed in the future, please use 'weights' instead.
+  warnings.warn(
+/usr/local/lib/python3.11/dist-packages/torchvision/models/_utils.py:223: UserWarning: Arguments other than a weight enum or `None` for 'weights' are deprecated since 0.13 and may be removed in the future. The current behavior is equivalent to passing `weights=None`.
+  warnings.warn(msg)
+📊 Epoch 1/10 | Val Acc: 0.4549 | Val Loss: 2.0474
+📊 Epoch 2/10 | Val Acc: 0.7203 | Val Loss: 0.7905
+📊 Epoch 3/10 | Val Acc: 0.6747 | Val Loss: 0.8912
+📊 Epoch 4/10 | Val Acc: 0.8450 | Val Loss: 0.4515
+📊 Epoch 5/10 | Val Acc: 0.7524 | Val Loss: 0.6897
+📊 Epoch 6/10 | Val Acc: 0.7966 | Val Loss: 0.5823
+📊 Epoch 7/10 | Val Acc: 0.6598 | Val Loss: 1.0187
+📊 Epoch 8/10 | Val Acc: 0.8030 | Val Loss: 0.5958
+📊 Epoch 9/10 | Val Acc: 0.4097 | Val Loss: 3.3705
+📊 Epoch 10/10 | Val Acc: 0.7941 | Val Loss: 0.7048
+📈 resnet18 → Predicted acc50: 0.8598
+
+🚀 Training mobilenet_v2 for 10 epochs...
+✅ Dataset split complete.
+Train: 11226 | Val: 2807 | Test: 2999
+/usr/local/lib/python3.11/dist-packages/torchvision/models/_utils.py:208: UserWarning: The parameter 'pretrained' is deprecated since 0.13 and may be removed in the future, please use 'weights' instead.
+  warnings.warn(
+/usr/local/lib/python3.11/dist-packages/torchvision/models/_utils.py:223: UserWarning: Arguments other than a weight enum or `None` for 'weights' are deprecated since 0.13 and may be removed in the future. The current behavior is equivalent to passing `weights=None`.
+  warnings.warn(msg)
+📊 Epoch 1/10 | Val Acc: 0.7243 | Val Loss: 0.7703
+📊 Epoch 2/10 | Val Acc: 0.7592 | Val Loss: 0.6806
+📊 Epoch 3/10 | Val Acc: 0.7691 | Val Loss: 0.6276
+📊 Epoch 4/10 | Val Acc: 0.7228 | Val Loss: 0.8389
+📊 Epoch 5/10 | Val Acc: 0.8272 | Val Loss: 0.5003
+📊 Epoch 6/10 | Val Acc: 0.8030 | Val Loss: 0.5982
+📊 Epoch 7/10 | Val Acc: 0.8112 | Val Loss: 0.5466
+📊 Epoch 8/10 | Val Acc: 0.8294 | Val Loss: 0.5136
+📊 Epoch 9/10 | Val Acc: 0.8055 | Val Loss: 0.5907
+📊 Epoch 10/10 | Val Acc: 0.8030 | Val Loss: 0.5517
+📈 mobilenet_v2 → Predicted acc50: 0.8422
+
+🚀 Training efficientnet_b0 for 10 epochs...
+✅ Dataset split complete.
+Train: 11226 | Val: 2807 | Test: 2999
+/usr/local/lib/python3.11/dist-packages/torchvision/models/_utils.py:208: UserWarning: The parameter 'pretrained' is deprecated since 0.13 and may be removed in the future, please use 'weights' instead.
+  warnings.warn(
+/usr/local/lib/python3.11/dist-packages/torchvision/models/_utils.py:223: UserWarning: Arguments other than a weight enum or `None` for 'weights' are deprecated since 0.13 and may be removed in the future. The current behavior is equivalent to passing `weights=None`.
+  warnings.warn(msg)
+📊 Epoch 1/10 | Val Acc: 0.6747 | Val Loss: 0.8583
+📊 Epoch 2/10 | Val Acc: 0.7560 | Val Loss: 0.6644
+📊 Epoch 3/10 | Val Acc: 0.8048 | Val Loss: 0.5642
+📊 Epoch 4/10 | Val Acc: 0.8411 | Val Loss: 0.4699
+📊 Epoch 5/10 | Val Acc: 0.8094 | Val Loss: 0.5330
+📊 Epoch 6/10 | Val Acc: 0.8504 | Val Loss: 0.4277
+📊 Epoch 7/10 | Val Acc: 0.8361 | Val Loss: 0.4980
+📊 Epoch 8/10 | Val Acc: 0.8518 | Val Loss: 0.4548
+📊 Epoch 9/10 | Val Acc: 0.8347 | Val Loss: 0.5059
+📊 Epoch 10/10 | Val Acc: 0.8465 | Val Loss: 0.5264
+📈 efficientnet_b0 → Predicted acc50: 0.8076
+
+💾 Saved evaluation curves to curve_dataset_intel.pt
+
+🏆 Best model: resnet18 with predicted acc50 = 0.8598
+
+🏆 Best model: resnet18 with predicted accuracy: 0.8598

@@ -14,7 +14,7 @@ def main():
                         choices=['curve', 'synflow', 'train_regressor', 'eval_regressor', 'full_automl', 'test_hpo'],
                         help='Select mode to run')
     parser.add_argument('--dataset', type=str, required=True,
-                        choices=['fashion', 'flowers', 'emotions','intel','all'],
+                        choices=['fashion', 'flowers', 'emotions','intel','all','skin_cancer'],
                         help='Dataset to use')
     parser.add_argument('--models', nargs='+',
                         default=['resnet18', 'mobilenet_v2', 'efficientnet_b0'],
