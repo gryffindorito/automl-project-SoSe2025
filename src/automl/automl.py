@@ -7,7 +7,7 @@ from .curve_predictor import predict_final_accuracy
 from .dataloader_utils import get_dataloaders
 
 class AutoML:
-    def __init__(self, dataset_name, device='cpu', data_dir='data',
+    def __init__(self, dataset_name, device='cpu', data_dir='conteny/automl_data',
                  curve_path=None, regressor_path=None):
         self.dataset_name = dataset_name
         self.device = device

@@ -77,7 +77,7 @@ def get_dataloaders(dataset_name: str, root: str = "automl_data", batch_size: in
             else val_dataset
         )
     else:
-        raise FileNotFoundError(f"🚨 Could not find train.csv in either {dataset_root} or {root}")
+        raise FileNotFoundError(f"🚨 Could not find train.csv at {os.path.join(root, dataset_name)}")
 
     print("✅ Dataset split complete.")
     print("Train:", len(train_dataset), "| Val:", len(val_dataset), "| Test:", len(test_dataset))

@@ -3,6 +3,7 @@ import torch
 import os
 from src.automl.generate_curve_dataset import run_curve_mode, train_and_record_curve
 from src.automl.curve_predictor import train_regressor, evaluate_regressor
+from src.automl.curve_predictor import run_full_automl
 from src.automl.automl import AutoML
 from src.automl.models import build_model, get_model
 from src.automl.dataloader_utils import get_dataloaders
@@ -29,6 +30,9 @@ def main():
     parser.add_argument('--curve_path', default="curve_dataset.pt",
                         help="Path to saved curve dataset (.pt file)")
     parser.add_argument("--curve-dir", type=str, default="curve_data/", help="Directory to save curve dataset files")
+    parser.add_argument('--regressor_path', type=str, default=None,
+                    help="Optional override path for regressor .pkl file")
+
     args = parser.parse_args()
     args.regressor_path = f"regressor_{args.dataset}.pkl"
 
@@ -82,14 +86,14 @@ def main():
 
     elif args.mode == "full_automl":
         print(f"\n🤖 Running full AutoML pipeline on {args.dataset}...\n")
-        automl = AutoML(
+        print(f"📎 Using regressor: {args.regressor_path}")
+        print(f"📁 Using data_dir: {args.data_dir}")
+        best_model, best_score = run_full_automl(
             dataset_name=args.dataset,
+            regressor_path=args.regressor_path,
             device=args.device,
-            data_dir=args.data_dir,
-            curve_path=args.curve_path,
-            regressor_path=args.regressor_path
+            data_dir=args.data_dir
         )
-        best_model, best_score = automl.run()
         print(f"\n🏆 Best model: {best_model} with predicted accuracy: {best_score:.4f}")
 
 if __name__ == "__main__":
