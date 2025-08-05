@@ -7,6 +7,8 @@ from src.automl.curve_predictor import run_full_automl
 from src.automl.automl import AutoML
 from src.automl.models import build_model, get_model
 from src.automl.dataloader_utils import get_dataloaders
+from src.automl.utils import set_seed
+
 
 def main():
     parser = argparse.ArgumentParser()
@@ -35,6 +37,8 @@ def main():
                     help="Optional override path for regressor .pkl file")
 
     args = parser.parse_args()
+    set_seed(args.seed)
+    print(f"🌱 Using seed: {args.seed}")
     if args.mode in ["full_automl", "train_regressor", "eval_regressor"]:
         args.regressor_path = args.regressor_path or f"regressor_{args.dataset}.pkl"
         print(f"📎 Using regressor: {args.regressor_path}")

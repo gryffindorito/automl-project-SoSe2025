@@ -30,6 +30,18 @@ model_hpo = {
     }
 }
 
+
+def safe_polyfit(y_values):
+    if len(y_values) < 2:
+        return 0.0
+    if np.all(np.isclose(y_values, y_values[0])):
+        return 0.0  # flat curve
+    try:
+        return np.polyfit(np.arange(1, len(y_values)+1), y_values, 1)[0]
+    except:
+        return 0.0
+
+
 def train_per_model_regressors(data, save_dir="model_regressors"):
     os.makedirs(save_dir, exist_ok=True)
 
@@ -142,19 +154,22 @@ def extract_features(item):
     acc = item["acc_curve"][:10]
     loss = item["loss_curve"][:10]
 
-    acc_deltas = [acc[i+1] - acc[i] for i in range(9)]
-    loss_deltas = [loss[i+1] - loss[i] for i in range(9)]
+    acc_deltas = [acc[i+1] - acc[i] for i in range(len(acc)-1)]
+    loss_deltas = [loss[i+1] - loss[i] for i in range(len(loss)-1)]
 
-    epochs = np.arange(1, 11)
-    acc_slope = np.polyfit(epochs, acc, 1)[0]
-    loss_slope = np.polyfit(epochs, loss, 1)[0]
-    plateau = 1.0 if acc_deltas[-1] < 0.001 else 0.0
-    loss_drop = loss[-1] - loss[0]
+    acc_slope = safe_polyfit(acc)
+    loss_slope = safe_polyfit(loss)
+    plateau = 1.0 if len(acc_deltas) > 0 and acc_deltas[-1] < 0.001 else 0.0
+    loss_drop = loss[-1] - loss[0] if len(loss) >= 2 else 0.0
 
-    # 🆕 New derived features
-    acc_last5_mean = np.mean(item["acc_curve"][45:50])
-    acc_max_first10 = max(acc)
-    acc_std_first10 = np.std(acc)
+    # 🆕 Safely handle derived features that require 50-point curves
+    acc_last5_mean = (
+        np.mean(item["acc_curve"][45:50])
+        if len(item["acc_curve"]) >= 50
+        else 0.0
+    )
+    acc_max_first10 = max(acc) if acc else 0.0
+    acc_std_first10 = np.std(acc) if acc else 0.0
 
     model_one_hot = [0, 0, 0]
     if item["model"] in MODEL_MAP:
@@ -169,6 +184,7 @@ def extract_features(item):
         [acc_last5_mean, acc_max_first10, acc_std_first10] +
         model_one_hot
     )
+
 
 
 
