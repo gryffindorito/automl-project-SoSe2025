@@ -42,9 +42,12 @@ def safe_polyfit(y_values):
         return 0.0
 
 
+def estimate_num_classes(item):
+    return 10  # fallback if not present in item
+
+
 def train_per_model_regressors(data, save_dir="model_regressors"):
     os.makedirs(save_dir, exist_ok=True)
-
     by_model = {"resnet18": [], "mobilenet_v2": [], "efficientnet_b0": []}
     for item in data:
         if item["model"] in by_model:
@@ -140,14 +143,12 @@ def train_and_record_curve(
             torch.save(data, curve_path)
             print(f"💾 Saved progress to {curve_path} after epoch {epoch+1}/{num_epochs}")
 
-    # ✅ Save final model weights (if applicable)
     if curve_path:
         weights_path = curve_path.replace(".pt", "_weights.pt")
         torch.save(model.state_dict(), weights_path)
         print(f"💾 Saved model weights to {weights_path}")
 
     return model, val_accuracies, val_losses
-
 
 
 def extract_features(item):
@@ -162,7 +163,6 @@ def extract_features(item):
     plateau = 1.0 if len(acc_deltas) > 0 and acc_deltas[-1] < 0.001 else 0.0
     loss_drop = loss[-1] - loss[0] if len(loss) >= 2 else 0.0
 
-    # 🆕 Safely handle derived features that require 50-point curves
     acc_last5_mean = (
         np.mean(item["acc_curve"][45:50])
         if len(item["acc_curve"]) >= 50
@@ -175,6 +175,9 @@ def extract_features(item):
     if item["model"] in MODEL_MAP:
         model_one_hot[MODEL_MAP[item["model"]]] = 1
 
+    in_channels = item.get("in_channels", 0)
+    num_classes = item.get("num_classes", 0)
+
     return np.array(
         acc +
         loss +
@@ -182,18 +185,22 @@ def extract_features(item):
         loss_deltas +
         [acc_slope, loss_slope, loss_drop, plateau] +
         [acc_last5_mean, acc_max_first10, acc_std_first10] +
-        model_one_hot
+        model_one_hot +
+        [in_channels, num_classes]
     )
-
-
 
 
 def train_regressor(data, save_path="regressor.pkl"):
     X, y = [], []
     for item in data:
+        if "in_channels" not in item:
+            item["in_channels"] = 3  # default
+        if "num_classes" not in item:
+            item["num_classes"] = estimate_num_classes(item)
+
         features = extract_features(item)
         X.append(features)
-        y.append(item["acc_curve"][49])  # Epoch 50
+        y.append(item["acc_curve"][49])
     model = Ridge(alpha=1.0)
     model.fit(X, y)
     joblib.dump(model, save_path)
@@ -211,6 +218,10 @@ def evaluate_regressor(model_path, data):
     model = joblib.load(model_path)
     X, y = [], []
     for item in data:
+        if "in_channels" not in item:
+            item["in_channels"] = 3
+        if "num_classes" not in item:
+            item["num_classes"] = estimate_num_classes(item)
         X.append(extract_features(item))
         y.append(item["acc_curve"][49])
     preds = model.predict(X)
@@ -275,13 +286,14 @@ def run_full_automl(dataset_name, regressor_path, device='cuda', data_dir='/cont
             "model": model_name,
             "dataset": dataset_name,
             "acc_curve": acc_curve,
-            "loss_curve": loss_curve
+            "loss_curve": loss_curve,
+            "in_channels": in_channels,
+            "num_classes": num_classes
         }
         all_records.append(item)
 
         try:
             pred_acc = predict_final_accuracy(regressor_path, item)
-
             print(f"📈 {model_name} → Predicted acc50: {pred_acc:.4f}")
             if pred_acc > best_score:
                 best_score = pred_acc
@@ -292,10 +304,8 @@ def run_full_automl(dataset_name, regressor_path, device='cuda', data_dir='/cont
     out_path = f"curve_dataset_{dataset_name}.pt"
     torch.save(all_records, out_path)
     print(f"\n💾 Saved evaluation curves to {out_path}")
-
     print(f"\n🏆 Best model: {best_model} with predicted acc50 = {best_score:.4f}")
     return best_model, best_score
-
 
 
 __all__ = [
