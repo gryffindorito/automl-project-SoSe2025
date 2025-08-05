@@ -141,6 +141,7 @@ def train_and_record_curve(
 def extract_features(item):
     acc = item["acc_curve"][:10]
     loss = item["loss_curve"][:10]
+
     acc_deltas = [acc[i+1] - acc[i] for i in range(9)]
     loss_deltas = [loss[i+1] - loss[i] for i in range(9)]
 
@@ -150,11 +151,25 @@ def extract_features(item):
     plateau = 1.0 if acc_deltas[-1] < 0.001 else 0.0
     loss_drop = loss[-1] - loss[0]
 
+    # 🆕 New derived features
+    acc_last5_mean = np.mean(item["acc_curve"][45:50])
+    acc_max_first10 = max(acc)
+    acc_std_first10 = np.std(acc)
+
     model_one_hot = [0, 0, 0]
     if item["model"] in MODEL_MAP:
         model_one_hot[MODEL_MAP[item["model"]]] = 1
 
-    return np.array(acc + loss + acc_deltas + loss_deltas + [acc_slope, loss_slope, loss_drop, plateau] + model_one_hot)
+    return np.array(
+        acc +
+        loss +
+        acc_deltas +
+        loss_deltas +
+        [acc_slope, loss_slope, loss_drop, plateau] +
+        [acc_last5_mean, acc_max_first10, acc_std_first10] +
+        model_one_hot
+    )
+
 
 
 def train_regressor(data, save_path="regressor.pkl"):
@@ -249,9 +264,7 @@ def run_full_automl(dataset_name, regressor_path, device='cuda', data_dir='/cont
         all_records.append(item)
 
         try:
-            from os.path import join
-            regressor_path_model = join(regressor_path, f"{model_name}_regressor.pkl")
-            pred_acc = predict_final_accuracy(regressor_path_model, item)
+            pred_acc = predict_final_accuracy(regressor_path, item)
 
             print(f"📈 {model_name} → Predicted acc50: {pred_acc:.4f}")
             if pred_acc > best_score:

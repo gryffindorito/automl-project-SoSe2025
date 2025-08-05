@@ -49,7 +49,13 @@ def main():
     elif args.mode == "train_regressor":
         print(f"\n🎓 Training regressor using curve data from {args.curve_path}...\n")
         data = torch.load(args.curve_path)
+
+        # Failsafe: if accidentally loaded a list of paths
+        if isinstance(data[0], str):
+           raise ValueError("🚨 Loaded list of filenames instead of dataset dicts. Check merge logic.")
+
         train_regressor(data, save_path=args.regressor_path)
+
         print(f"✅ Regressor saved to {args.regressor_path}")
 
     elif args.mode == "eval_regressor":
