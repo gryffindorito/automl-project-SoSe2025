@@ -236,6 +236,7 @@ def run_full_automl(dataset_name, regressor_path, device='cuda', data_dir='/cont
     from .models import get_model
     from .dataloader_utils import get_dataloaders
     from .curve_predictor import train_and_record_curve, predict_final_accuracy
+    from .hpo_optuna import run_optuna_study
 
     print(f"\n🤖 AutoML selecting best model for {dataset_name}...")
 
@@ -250,7 +251,7 @@ def run_full_automl(dataset_name, regressor_path, device='cuda', data_dir='/cont
         print(f"\n🚀 Training {model_name} for 10 epochs...")
 
         try:
-            train_loader, val_loader, _ = get_dataloaders(
+            train_loader, val_loader, test_loader = get_dataloaders(
                 dataset_name=dataset_name,
                 root=data_dir,
                 batch_size=64
@@ -301,11 +302,107 @@ def run_full_automl(dataset_name, regressor_path, device='cuda', data_dir='/cont
         except Exception as e:
             print(f"❌ Error in prediction for {model_name}: {e}")
 
-    out_path = f"curve_dataset_{dataset_name}.pt"
-    torch.save(all_records, out_path)
-    print(f"\n💾 Saved evaluation curves to {out_path}")
-    print(f"\n🏆 Best model: {best_model} with predicted acc50 = {best_score:.4f}")
-    return best_model, best_score
+    print(f"\n🏆 Best base model selected: {best_model} with predicted acc50 = {best_score:.4f}")
+
+    # 🔁 Run 5-trial Optuna HPO for selected model
+    hpo_curves = []
+    for trial_num in range(5):
+        print(f"\n🔍 Optuna trial {trial_num+1}/5 for {best_model}")
+        best_config = run_optuna_study(
+            model_name=best_model,
+            dataset_name=dataset_name,
+            n_trials=1,
+            max_epoch=10,
+            data_dir=data_dir
+        )
+
+        train_loader, val_loader, test_loader = get_dataloaders(dataset_name, root=data_dir)
+        model = get_model(best_model, num_classes=num_classes, in_channels=in_channels).to(device)
+
+        _, acc_curve, loss_curve = train_and_record_curve(
+            model=model,
+            train_loader=train_loader,
+            val_loader=val_loader,
+            num_epochs=10,
+            device=device,
+            lr=best_config["lr"],
+            wd=best_config["weight_decay"],
+            optimizer_type="adamw",
+            scheduler_type=None,
+            curve_path=None,
+            model_name=best_model,
+            dataset_name=f"{dataset_name}_trial{trial_num}"
+        )
+
+        item = {
+            "model": best_model,
+            "dataset": dataset_name,
+            "acc_curve": acc_curve,
+            "loss_curve": loss_curve,
+            "in_channels": in_channels,
+            "num_classes": num_classes
+        }
+        hpo_curves.append(item)
+
+    # 🔮 Re-predict best among 5 HPO runs + original
+    print(f"\n🔁 Re-evaluating 6 curves using regressor...")
+    all_candidates = [item for item in all_records if item["model"] == best_model] + hpo_curves
+    final_best = None
+    final_best_score = -1
+    final_best_config = None
+    for item in all_candidates:
+        try:
+            pred = predict_final_accuracy(regressor_path, item)
+            print(f"📈 HPO Curve → Predicted acc50: {pred:.4f}")
+            if pred > final_best_score:
+                final_best_score = pred
+                final_best = item
+        except:
+            continue
+
+    print(f"\n✅ Final model selected for 50-epoch training: {best_model} with predicted acc50 = {final_best_score:.4f}")
+
+    # 🏁 Final 50-epoch training
+    print(f"\n⏳ Training final {best_model} model for 50 epochs...")
+    model = get_model(best_model, num_classes=final_best["num_classes"], in_channels=final_best["in_channels"]).to(device)
+
+    best_hpo_config = model_hpo[best_model]  # fallback
+    if "hpo" in final_best.get("dataset", ""):
+        best_hpo_config = best_config  # if final was from Optuna
+
+    train_loader, val_loader, test_loader = get_dataloaders(dataset_name, root=data_dir)
+    train_and_record_curve(
+        model=model,
+        train_loader=train_loader,
+        val_loader=val_loader,
+        num_epochs=50,
+        device=device,
+        lr=best_hpo_config["lr"],
+        wd=best_hpo_config["weight_decay"],
+        optimizer_type=best_hpo_config["optimizer_type"],
+        scheduler_type=best_hpo_config["scheduler_type"],
+        curve_path=None,
+        model_name=best_model,
+        dataset_name=dataset_name
+    )
+
+    # 🎯 Run on test set and save predictions
+    print(f"\n🧪 Evaluating {best_model} on test set...")
+    model.eval()
+    preds = []
+    with torch.no_grad():
+        for images, _ in test_loader:
+            images = images.to(device)
+            logits = model(images)
+            predicted = torch.argmax(logits, dim=1)
+            preds.extend(predicted.cpu().numpy())
+
+    os.makedirs(f"/content/automl_data/{dataset_name}", exist_ok=True)
+    np.save(f"/content/automl_data/{dataset_name}/predictions.npy", np.array(preds))
+    print(f"💾 Saved predictions to /content/automl_data/{dataset_name}/predictions.npy")
+
+
+
 
 
 __all__ = [
