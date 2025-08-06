@@ -45,6 +45,37 @@ def safe_polyfit(y_values):
 def estimate_num_classes(item):
     return 10  # fallback if not present in item
 
+def run_test_model(dataset_name, model_path, data_dir="/content/automl_data", device="cuda"):
+    import torch
+    import numpy as np
+    import os
+    from .dataloader_utils import get_dataloaders
+
+    print(f"\n Running test_model on {dataset_name}")
+    print(f" Loading model from: {model_path}")
+
+    # Load the full model (includes architecture and weights)
+    model = torch.load(model_path, map_location=device, weights_only=False)
+    model.eval()
+
+    # Load test set
+    _, _, test_loader = get_dataloaders(dataset_name, root=data_dir, batch_size=64)
+
+    # Predict
+    preds = []
+    with torch.no_grad():
+        for images, _ in test_loader:
+            images = images.to(device)
+            outputs = model(images)
+            predicted = torch.argmax(outputs, dim=1)
+            preds.extend(predicted.cpu().numpy())
+
+    # Save predictions
+    pred_path = os.path.join(data_dir, dataset_name, "predictions.npy")
+    np.save(pred_path, np.array(preds))
+    print(f" Saved predictions to: {pred_path}")
+
+
 
 def train_per_model_regressors(data, save_dir="model_regressors"):
     os.makedirs(save_dir, exist_ok=True)
@@ -365,10 +396,10 @@ def run_full_automl(dataset_name, regressor_path, device='cuda', data_dir='/cont
     )
 
     # Save trained model weights for later test-time prediction
-    model_save_path = os.path.join(data_dir, dataset_name, f"{best_model}_final.pth")
+    model_save_path = os.path.join(data_dir, dataset_name, f"{best_model}_final.pt")
     os.makedirs(os.path.dirname(model_save_path), exist_ok=True)
-    torch.save(model.state_dict(), model_save_path)
-    print(f"✅ Saved final trained model to {model_save_path}") 
+    torch.save(model, model_save_path)
+    print(f" Saved final trained model to {model_save_path}") 
 
 
 __all__ = [
@@ -377,4 +408,6 @@ __all__ = [
     "predict_final_accuracy",
     "evaluate_regressor",
     "run_full_automl"
+    "run_test_model",
+
 ]

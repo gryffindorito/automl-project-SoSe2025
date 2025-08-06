@@ -4,6 +4,7 @@ import os
 from src.automl.generate_curve_dataset import run_curve_mode, train_and_record_curve
 from src.automl.curve_predictor import train_regressor, evaluate_regressor
 from src.automl.curve_predictor import run_full_automl
+from src.automl.curve_predictor import run_test_model
 from src.automl.automl import AutoML
 from src.automl.models import build_model, get_model
 from src.automl.dataloader_utils import get_dataloaders
@@ -13,7 +14,7 @@ from src.automl.utils import set_seed
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--mode', type=str, required=True,
-                        choices=['curve', 'synflow', 'train_regressor', 'eval_regressor', 'full_automl', 'test_hpo'],
+                        choices=['curve','test_model', 'synflow', 'train_regressor', 'eval_regressor', 'full_automl', 'test_hpo'],
                         help='Select mode to run')
     parser.add_argument('--dataset', type=str, required=True,
                         choices=['fashion', 'flowers', 'emotions','intel','all','skin_cancer'],
@@ -32,13 +33,14 @@ def main():
     parser.add_argument('--curve_path', default="curve_dataset.pt",
                         help="Path to saved curve dataset (.pt file)")
     parser.add_argument("--seed", type=int, default=42, help="Random seed (default: 42)")
+    parser.add_argument('--weights_path', type=str, help='Path to the saved .pt model file')
+    parser.add_argument('--model_name', type=str, help='Model name (used for logging only)')
     parser.add_argument("--curve-dir", type=str, default="curve_data/", help="Directory to save curve dataset files")
     parser.add_argument('--regressor_path', type=str, default=None,
                     help="Optional override path for regressor .pkl file")
 
     args = parser.parse_args()
     set_seed(args.seed)
-    print(f" Using seed: {args.seed}")
     if args.mode in ["full_automl", "train_regressor", "eval_regressor"]:
         args.regressor_path = args.regressor_path or f"regressor_{args.dataset}.pkl"
         print(f" Using regressor: {args.regressor_path}")
@@ -61,6 +63,16 @@ def main():
         train_regressor(data, save_path=args.regressor_path)
 
         print(f" Regressor saved to {args.regressor_path}")
+
+
+    elif args.mode == "test_model":
+        print(f"\n Running test_model on {args.dataset}...\n")
+        run_test_model(
+            dataset_name=args.dataset,
+            model_path=args.weights_path,
+            data_dir=args.data_dir,
+            device=args.device
+        )
 
     elif args.mode == "eval_regressor":
         print(f"\n Evaluating regressor at {args.regressor_path}...\n")
@@ -108,6 +120,7 @@ def main():
             device=args.device,
             data_dir=args.data_dir
         )
+    
         
 if __name__ == "__main__":
     main()

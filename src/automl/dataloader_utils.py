@@ -24,7 +24,11 @@ class FreiburgDataset(Dataset):
 
     def __getitem__(self, idx):
         filename_raw = str(self.data.iloc[idx, 1])
-        label = int(self.data.iloc[idx, 0])
+        label_val = self.data.iloc[idx, 0]
+        if pd.isna(label_val):
+            label = -1  # dummy value during test time
+        else:
+            label = int(label_val)
 
         folder = (
             "images_train" if self.split == "train"
