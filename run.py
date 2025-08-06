@@ -38,14 +38,14 @@ def main():
 
     args = parser.parse_args()
     set_seed(args.seed)
-    print(f"🌱 Using seed: {args.seed}")
+    print(f" Using seed: {args.seed}")
     if args.mode in ["full_automl", "train_regressor", "eval_regressor"]:
         args.regressor_path = args.regressor_path or f"regressor_{args.dataset}.pkl"
-        print(f"📎 Using regressor: {args.regressor_path}")
+        print(f" Using regressor: {args.regressor_path}")
 
 
     if args.mode == "curve":
-        print(f"\n📈 Generating learning curves for dataset={args.dataset} | epochs={args.curve_epochs}")
+        print(f"\n Generating learning curves for dataset={args.dataset} | epochs={args.curve_epochs}")
         for model in args.models:
             args.model = model
             run_curve_mode(args)
@@ -56,23 +56,23 @@ def main():
 
         # Failsafe: if accidentally loaded a list of paths
         if isinstance(data[0], str):
-           raise ValueError("🚨 Loaded list of filenames instead of dataset dicts. Check merge logic.")
+           raise ValueError(" Loaded list of filenames instead of dataset dicts. Check merge logic.")
 
         train_regressor(data, save_path=args.regressor_path)
 
-        print(f"✅ Regressor saved to {args.regressor_path}")
+        print(f" Regressor saved to {args.regressor_path}")
 
     elif args.mode == "eval_regressor":
-        print(f"\n📊 Evaluating regressor at {args.regressor_path}...\n")
+        print(f"\n Evaluating regressor at {args.regressor_path}...\n")
         data = torch.load(args.curve_path)
         r2 = evaluate_regressor(args.regressor_path, data)
-        print(f"📈 R² Score: {r2:.4f}")
+        print(f" R² Score: {r2:.4f}")
 
     elif args.mode == "test_hpo":
-        print(f"🔍 Running 10-epoch HPO test on dataset: {args.dataset}")
+        print(f" Running 10-epoch HPO test on dataset: {args.dataset}")
 
         for model_name in args.models:
-            print(f"\n🚀 Testing {model_name} with HPO settings")
+            print(f"\n Testing {model_name} with HPO settings")
 
             train_loader, val_loader, _ = get_dataloaders(
                 dataset_name=args.dataset,
@@ -96,19 +96,19 @@ def main():
                 device=args.device
             )
 
-            print(f"📈 Final accuracy after 10 epochs: {curve[-1]:.4f}")
+            print(f" Final accuracy after 10 epochs: {curve[-1]:.4f}")
 
     elif args.mode == "full_automl":
-        print(f"\n🤖 Running full AutoML pipeline on {args.dataset}...\n")
-        print(f"📎 Using regressor: {args.regressor_path}")
-        print(f"📁 Using data_dir: {args.data_dir}")
+        print(f"\n Running full AutoML pipeline on {args.dataset}...\n")
+        print(f" Using regressor: {args.regressor_path}")
+        print(f" Using data_dir: {args.data_dir}")
         best_model, best_score = run_full_automl(
             dataset_name=args.dataset,
             regressor_path=args.regressor_path,
             device=args.device,
             data_dir=args.data_dir
         )
-        print(f"\n🏆 Best model: {best_model} with predicted accuracy: {best_score:.4f}")
+        print(f"\n Best model: {best_model} with predicted accuracy: {best_score:.4f}")
 
 if __name__ == "__main__":
     main()
