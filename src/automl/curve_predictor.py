@@ -305,51 +305,29 @@ def run_full_automl(dataset_name, regressor_path, device='cuda', data_dir='/cont
     print(f"\n🏆 Best base model selected: {best_model} with predicted acc50 = {best_score:.4f}")
 
     # 🔁 Run 5-trial Optuna HPO for selected model
-    hpo_curves = []
-    for trial_num in range(5):
-        print(f"\n🔍 Optuna trial {trial_num+1}/5 for {best_model}")
-        best_config = run_optuna_study(
-            model_name=best_model,
-            dataset_name=dataset_name,
-            n_trials=1,
-            max_epoch=10,
-            data_dir=data_dir
-        )
+    base_config = model_hpo[best_model]
+    hpo_trials = run_optuna_study(
+        model_name=best_model,
+        dataset_name=dataset_name,
+        base_lr=base_config["lr"],
+        base_wd=base_config["weight_decay"],
+        n_trials=5,
+        max_epoch=10,
+        data_dir=data_dir
+    )
 
-        train_loader, val_loader, test_loader = get_dataloaders(dataset_name, root=data_dir)
-        model = get_model(best_model, num_classes=num_classes, in_channels=in_channels).to(device)
+    # ✅ Sanity check: Print all 5 trials
+    print(f"\n📊 Received {len(hpo_trials)} Optuna trial results:")
+    for i, trial in enumerate(hpo_trials):
+        print(f"  Trial {i+1}: lr={trial['lr']:.6f}, wd={trial['weight_decay']:.6f}, acc={trial['acc_curve'][-1]:.4f}")
 
-        _, acc_curve, loss_curve = train_and_record_curve(
-            model=model,
-            train_loader=train_loader,
-            val_loader=val_loader,
-            num_epochs=10,
-            device=device,
-            lr=best_config["lr"],
-            wd=best_config["weight_decay"],
-            optimizer_type="adamw",
-            scheduler_type=None,
-            curve_path=None,
-            model_name=best_model,
-            dataset_name=f"{dataset_name}_trial{trial_num}"
-        )
-
-        item = {
-            "model": best_model,
-            "dataset": dataset_name,
-            "acc_curve": acc_curve,
-            "loss_curve": loss_curve,
-            "in_channels": in_channels,
-            "num_classes": num_classes
-        }
-        hpo_curves.append(item)
+    hpo_curves = hpo_trials  # ✅ No retraining needed — already done inside run_optuna_study()
 
     # 🔮 Re-predict best among 5 HPO runs + original
     print(f"\n🔁 Re-evaluating 6 curves using regressor...")
     all_candidates = [item for item in all_records if item["model"] == best_model] + hpo_curves
     final_best = None
     final_best_score = -1
-    final_best_config = None
     for item in all_candidates:
         try:
             pred = predict_final_accuracy(regressor_path, item)
@@ -357,7 +335,8 @@ def run_full_automl(dataset_name, regressor_path, device='cuda', data_dir='/cont
             if pred > final_best_score:
                 final_best_score = pred
                 final_best = item
-        except:
+        except Exception as e:
+            print(f"⚠️ Re-prediction failed: {e}")
             continue
 
     print(f"\n✅ Final model selected for 50-epoch training: {best_model} with predicted acc50 = {final_best_score:.4f}")
@@ -366,9 +345,8 @@ def run_full_automl(dataset_name, regressor_path, device='cuda', data_dir='/cont
     print(f"\n⏳ Training final {best_model} model for 50 epochs...")
     model = get_model(best_model, num_classes=final_best["num_classes"], in_channels=final_best["in_channels"]).to(device)
 
-    best_hpo_config = model_hpo[best_model]  # fallback
-    if "hpo" in final_best.get("dataset", ""):
-        best_hpo_config = best_config  # if final was from Optuna
+    final_lr = final_best.get("lr", base_config["lr"])
+    final_wd = final_best.get("weight_decay", base_config["weight_decay"])
 
     train_loader, val_loader, test_loader = get_dataloaders(dataset_name, root=data_dir)
     train_and_record_curve(
@@ -377,10 +355,10 @@ def run_full_automl(dataset_name, regressor_path, device='cuda', data_dir='/cont
         val_loader=val_loader,
         num_epochs=50,
         device=device,
-        lr=best_hpo_config["lr"],
-        wd=best_hpo_config["weight_decay"],
-        optimizer_type=best_hpo_config["optimizer_type"],
-        scheduler_type=best_hpo_config["scheduler_type"],
+        lr=final_lr,
+        wd=final_wd,
+        optimizer_type="adamw",
+        scheduler_type=None,
         curve_path=None,
         model_name=best_model,
         dataset_name=dataset_name
@@ -400,9 +378,7 @@ def run_full_automl(dataset_name, regressor_path, device='cuda', data_dir='/cont
     os.makedirs(f"/content/automl_data/{dataset_name}", exist_ok=True)
     np.save(f"/content/automl_data/{dataset_name}/predictions.npy", np.array(preds))
     print(f"💾 Saved predictions to /content/automl_data/{dataset_name}/predictions.npy")
-
-
-
+    return best_model, final_best_score
 
 
 __all__ = [
