@@ -8,7 +8,7 @@ import os
 
 MODEL_MAP = {"resnet18": 0, "mobilenet_v2": 1, "efficientnet_b0": 2}
 
-# 🧠 Best hyperparameters per model from HPO
+#  Best hyperparameters per model from HPO
 model_hpo = {
     "resnet18": {
         "lr": 0.0003498223657876835,
@@ -55,7 +55,7 @@ def train_per_model_regressors(data, save_dir="model_regressors"):
 
     for model_name, model_data in by_model.items():
         if not model_data:
-            print(f"⚠️ No data for {model_name}, skipping.")
+            print(f" No data for {model_name}, skipping.")
             continue
         print(f"🎓 Training regressor for {model_name} on {len(model_data)} samples")
         model = Ridge(alpha=1.0)
@@ -64,7 +64,7 @@ def train_per_model_regressors(data, save_dir="model_regressors"):
         model.fit(X, y)
         path = os.path.join(save_dir, f"{model_name}_regressor.pkl")
         joblib.dump(model, path)
-        print(f"✅ Saved {model_name} regressor to {path}")
+        print(f" Saved {model_name} regressor to {path}")
 
 
 def train_and_record_curve(
@@ -123,7 +123,7 @@ def train_and_record_curve(
         val_accuracies.append(acc)
         val_losses.append(avg_loss)
 
-        print(f"📊 Epoch {epoch+1}/{num_epochs} | Val Acc: {acc:.4f} | Val Loss: {avg_loss:.4f}")
+        print(f" Epoch {epoch+1}/{num_epochs} | Val Acc: {acc:.4f} | Val Loss: {avg_loss:.4f}")
         model.train()
 
         if curve_path:
@@ -141,12 +141,12 @@ def train_and_record_curve(
             data = [d for d in data if not (d["model"] == model_name and d["dataset"] == dataset_name)]
             data.append(record)
             torch.save(data, curve_path)
-            print(f"💾 Saved progress to {curve_path} after epoch {epoch+1}/{num_epochs}")
+            print(f" Saved progress to {curve_path} after epoch {epoch+1}/{num_epochs}")
 
     if curve_path:
         weights_path = curve_path.replace(".pt", "_weights.pt")
         torch.save(model.state_dict(), weights_path)
-        print(f"💾 Saved model weights to {weights_path}")
+        print(f" Saved model weights to {weights_path}")
 
     return model, val_accuracies, val_losses
 
@@ -204,7 +204,7 @@ def train_regressor(data, save_path="regressor.pkl"):
     model = Ridge(alpha=1.0)
     model.fit(X, y)
     joblib.dump(model, save_path)
-    print(f"✅ Ridge regressor saved to {save_path}")
+    print(f" Ridge regressor saved to {save_path}")
     return model
 
 
@@ -226,7 +226,7 @@ def evaluate_regressor(model_path, data):
         y.append(item["acc_curve"][49])
     preds = model.predict(X)
     if len(y) < 2:
-        print("⚠️ Only one sample — R² score is not well-defined.")
+        print(" Only one sample — R² score is not well-defined.")
         return None
     return r2_score(y, preds)
 
@@ -238,17 +238,17 @@ def run_full_automl(dataset_name, regressor_path, device='cuda', data_dir='/cont
     from .curve_predictor import train_and_record_curve, predict_final_accuracy
     from .hpo_optuna import run_optuna_study
 
-    print(f"\n🤖 AutoML selecting best model for {dataset_name}...")
+    print(f"\n AutoML selecting best model for {dataset_name}...")
 
     model_names = ["resnet18", "mobilenet_v2", "efficientnet_b0"]
     best_model, best_score = None, -1
     all_records = []
 
     dataset_path = os.path.join(data_dir, dataset_name)
-    print(f"📂 Loading dataset from: {dataset_path}")
+    print(f" Loading dataset from: {dataset_path}")
 
     for model_name in model_names:
-        print(f"\n🚀 Training {model_name} for 10 epochs...")
+        print(f"\n Training {model_name} for 10 epochs...")
 
         try:
             train_loader, val_loader, test_loader = get_dataloaders(
@@ -257,7 +257,7 @@ def run_full_automl(dataset_name, regressor_path, device='cuda', data_dir='/cont
                 batch_size=64
             )
         except FileNotFoundError as e:
-            print(f"❌ Dataset loading error for {model_name}: {e}")
+            print(f" Dataset loading error for {model_name}: {e}")
             continue
 
         in_channels = next(iter(train_loader))[0].shape[1]
@@ -295,16 +295,16 @@ def run_full_automl(dataset_name, regressor_path, device='cuda', data_dir='/cont
 
         try:
             pred_acc = predict_final_accuracy(regressor_path, item)
-            print(f"📈 {model_name} → Predicted acc50: {pred_acc:.4f}")
+            print(f" {model_name} → Predicted acc50: {pred_acc:.4f}")
             if pred_acc > best_score:
                 best_score = pred_acc
                 best_model = model_name
         except Exception as e:
-            print(f"❌ Error in prediction for {model_name}: {e}")
+            print(f" Error in prediction for {model_name}: {e}")
 
-    print(f"\n🏆 Best base model selected: {best_model} with predicted acc50 = {best_score:.4f}")
+    print(f"\n Best base model selected: {best_model} with predicted acc50 = {best_score:.4f}")
 
-    # 🔁 Run 5-trial Optuna HPO for selected model
+    #  Run 5-trial Optuna HPO for selected model
     base_config = model_hpo[best_model]
     hpo_trials = run_optuna_study(
         model_name=best_model,
@@ -316,33 +316,33 @@ def run_full_automl(dataset_name, regressor_path, device='cuda', data_dir='/cont
         data_dir=data_dir
     )
 
-    # ✅ Sanity check: Print all 5 trials
-    print(f"\n📊 Received {len(hpo_trials)} Optuna trial results:")
+    #  Sanity check: Print all 5 trials
+    print(f"\n Received {len(hpo_trials)} Optuna trial results:")
     for i, trial in enumerate(hpo_trials):
         print(f"  Trial {i+1}: lr={trial['lr']:.6f}, wd={trial['weight_decay']:.6f}, acc={trial['acc_curve'][-1]:.4f}")
 
-    hpo_curves = hpo_trials  # ✅ No retraining needed — already done inside run_optuna_study()
+    hpo_curves = hpo_trials 
 
-    # 🔮 Re-predict best among 5 HPO runs + original
-    print(f"\n🔁 Re-evaluating 6 curves using regressor...")
+    #  Re-predict best among 5 HPO runs + original
+    print(f"\n Re-evaluating 6 curves using regressor...")
     all_candidates = [item for item in all_records if item["model"] == best_model] + hpo_curves
     final_best = None
     final_best_score = -1
     for item in all_candidates:
         try:
             pred = predict_final_accuracy(regressor_path, item)
-            print(f"📈 HPO Curve → Predicted acc50: {pred:.4f}")
+            print(f" HPO Curve → Predicted acc50: {pred:.4f}")
             if pred > final_best_score:
                 final_best_score = pred
                 final_best = item
         except Exception as e:
-            print(f"⚠️ Re-prediction failed: {e}")
+            print(f" Re-prediction failed: {e}")
             continue
 
-    print(f"\n✅ Final model selected for 50-epoch training: {best_model} with predicted acc50 = {final_best_score:.4f}")
+    print(f"\n Final model selected for 50-epoch training: {best_model} with predicted acc50 = {final_best_score:.4f}")
 
-    # 🏁 Final 50-epoch training
-    print(f"\n⏳ Training final {best_model} model for 50 epochs...")
+    # Final 50-epoch training
+    print(f"\n Training final {best_model} model for 50 epochs...")
     model = get_model(best_model, num_classes=final_best["num_classes"], in_channels=final_best["in_channels"]).to(device)
 
     final_lr = final_best.get("lr", base_config["lr"])
@@ -364,7 +364,7 @@ def run_full_automl(dataset_name, regressor_path, device='cuda', data_dir='/cont
         dataset_name=dataset_name
     )
 
-    # 🎯 Run on test set and save predictions
+    # Run on test set and save predictions
     print(f"\n🧪 Evaluating {best_model} on test set...")
     model.eval()
     preds = []
@@ -377,7 +377,7 @@ def run_full_automl(dataset_name, regressor_path, device='cuda', data_dir='/cont
 
     os.makedirs(f"/content/automl_data/{dataset_name}", exist_ok=True)
     np.save(f"/content/automl_data/{dataset_name}/predictions.npy", np.array(preds))
-    print(f"💾 Saved predictions to /content/automl_data/{dataset_name}/predictions.npy")
+    print(f" Saved predictions to /content/automl_data/{dataset_name}/predictions.npy")
     return best_model, final_best_score
 
 

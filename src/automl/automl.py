@@ -43,15 +43,15 @@ class AutoML:
         best_model_name = None
 
         # Load curve dataset
-        print(f"📦 Loading curve dataset from {self.curve_path}")
+        print(f" Loading curve dataset from {self.curve_path}")
         data = torch.load(self.curve_path)
 
         for model_name in model_names:
-            print(f"\n🔧 Evaluating {model_name}...")
+            print(f"\n Evaluating {model_name}...")
 
             entry = next((d for d in data if d["model"] == model_name), None)
             if not entry:
-                print(f"❌ No curve data for {model_name}, skipping.")
+                print(f" No curve data for {model_name}, skipping.")
                 continue
 
             # Prepare item for regressor input
@@ -63,14 +63,14 @@ class AutoML:
 
             try:
                 pred_acc = predict_final_accuracy(self.regressor_path, item)
-                print(f"📈 Predicted final accuracy: {pred_acc:.4f}")
+                print(f" Predicted final accuracy: {pred_acc:.4f}")
             except Exception as e:
-                print(f"❌ Failed to predict for {model_name}: {e}")
+                print(f" Failed to predict for {model_name}: {e}")
                 continue
 
             if pred_acc > best_score:
                 best_score = pred_acc
                 best_model_name = model_name
 
-        print(f"\n✅ Selected model: {best_model_name} with predicted acc {best_score:.4f}")
+        print(f"\n Selected model: {best_model_name} with predicted acc {best_score:.4f}")
         return best_model_name, best_score

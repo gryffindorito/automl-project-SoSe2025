@@ -1,12 +1,12 @@
 import os
 import torch
 
-from automl.curve_predictor import train_and_record_curve  # ✅ Absolute import for Colab
+from automl.curve_predictor import train_and_record_curve  # Absolute import for Colab
 from automl.utils import set_seed
 from automl.dataloader_utils import get_dataloaders
 from automl.models import get_model
 
-# 🧠 Best hyperparameters per model from Optuna (regardless of dataset)
+#  Best hyperparameters per model from Optuna (regardless of dataset)
 model_hpo = {
     "resnet18": {
         "lr": 0.0003498223657876835,
@@ -29,20 +29,20 @@ model_hpo = {
 }
 
 def run_curve_mode(args):
-    # 🎯 Use seed from CLI args instead of fixed 42
+    # Use seed from CLI args instead of fixed 42
     set_seed(args.seed)
-    print(f"🌱 Using seed: {args.seed}")
+    print(f" Using seed: {args.seed}")
 
     config = model_hpo[args.model]
     os.makedirs(args.curve_dir, exist_ok=True)
 
-    # 🗃️ Save curve with seed in name to distinguish runs
+    # Save curve with seed in name to distinguish runs
     curve_path = os.path.join(
         args.curve_dir,
         f"curve_dataset_{args.dataset}_{args.model}_seed{args.seed}.pt"
     )
 
-    # 📦 Load data and model
+    # Load data and model
     train_loader, val_loader, _ = get_dataloaders(args.dataset, root=args.data_dir, batch_size=64)
     first_batch = next(iter(train_loader))[0]
     in_channels = first_batch.shape[1]

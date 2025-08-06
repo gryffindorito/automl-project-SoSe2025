@@ -8,7 +8,7 @@ DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
 def run_optuna_study(model_name, dataset_name, base_lr, base_wd,
                      n_trials=5, max_epoch=10, data_dir="automl_data"):
-    print(f"🎯 Starting focused Optuna HPO for {model_name} on {dataset_name}")
+    print(f" Starting focused Optuna HPO for {model_name} on {dataset_name}")
 
     results = []
 
@@ -16,7 +16,7 @@ def run_optuna_study(model_name, dataset_name, base_lr, base_wd,
         lr = trial.suggest_float("lr", 0.5 * base_lr, 1.5 * base_lr, log=True)
         wd = trial.suggest_float("weight_decay", 0.3 * base_wd, 2.0 * base_wd, log=True)
 
-        print(f"🧪 Trial Params → lr: {lr:.6f}, weight_decay: {wd:.6f}")
+        print(f" Trial Params → lr: {lr:.6f}, weight_decay: {wd:.6f}")
 
         train_loader, val_loader, _ = get_dataloaders(
             dataset_name, root=data_dir, batch_size=64
@@ -58,7 +58,7 @@ def run_optuna_study(model_name, dataset_name, base_lr, base_wd,
     study = optuna.create_study(direction="maximize")
     study.optimize(objective, n_trials=n_trials)
 
-    print(f"✅ Best Params: {study.best_params}")
-    print(f"🏁 Best Final Val Acc: {study.best_value:.4f}")
+    print(f" Best Params: {study.best_params}")
+    print(f" Best Final Val Acc: {study.best_value:.4f}")
 
     return results  # list of 5 trial dicts
