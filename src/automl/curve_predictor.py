@@ -364,21 +364,11 @@ def run_full_automl(dataset_name, regressor_path, device='cuda', data_dir='/cont
         dataset_name=dataset_name
     )
 
-    # Run on test set and save predictions
-    print(f"\n🧪 Evaluating {best_model} on test set...")
-    model.eval()
-    preds = []
-    with torch.no_grad():
-        for images, _ in test_loader:
-            images = images.to(device)
-            logits = model(images)
-            predicted = torch.argmax(logits, dim=1)
-            preds.extend(predicted.cpu().numpy())
-
-    os.makedirs(f"/content/automl_data/{dataset_name}", exist_ok=True)
-    np.save(f"/content/automl_data/{dataset_name}/predictions.npy", np.array(preds))
-    print(f" Saved predictions to /content/automl_data/{dataset_name}/predictions.npy")
-    return best_model, final_best_score
+    # Save trained model weights for later test-time prediction
+    model_save_path = os.path.join(data_dir, dataset_name, f"{best_model}_final.pth")
+    os.makedirs(os.path.dirname(model_save_path), exist_ok=True)
+    torch.save(model.state_dict(), model_save_path)
+    print(f"✅ Saved final trained model to {model_save_path}") 
 
 
 __all__ = [

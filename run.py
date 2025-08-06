@@ -102,13 +102,12 @@ def main():
         print(f"\n Running full AutoML pipeline on {args.dataset}...\n")
         print(f" Using regressor: {args.regressor_path}")
         print(f" Using data_dir: {args.data_dir}")
-        best_model, best_score = run_full_automl(
+        run_full_automl(
             dataset_name=args.dataset,
             regressor_path=args.regressor_path,
             device=args.device,
             data_dir=args.data_dir
         )
-        print(f"\n Best model: {best_model} with predicted accuracy: {best_score:.4f}")
-
+        
 if __name__ == "__main__":
     main()
